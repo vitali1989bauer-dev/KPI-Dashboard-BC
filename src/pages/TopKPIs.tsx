@@ -27,9 +27,9 @@ function KpiCardComponent({ kpi }: { kpi: KpiCard }) {
     kpi.change !== undefined && kpi.change >= 0 ? ArrowUpRight : ArrowDownRight
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-primary/20 transition-all duration-200 group">
+    <div className="bg-card rounded-xl border border-border p-5 card-hover group">
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-sm font-medium text-text-secondary leading-tight pr-2">
+        <h3 className="text-[13px] font-semibold text-text-secondary leading-tight pr-2">
           {kpi.title}
         </h3>
         <div className={`p-1.5 rounded-lg ${statusBg[kpi.status]}`}>
@@ -51,7 +51,7 @@ function KpiCardComponent({ kpi }: { kpi: KpiCard }) {
       {kpi.change !== undefined && (
         <div className="flex items-center gap-1.5">
           <div
-            className={`flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded ${
+            className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
               kpi.change >= 0
                 ? 'text-positive bg-positive/10'
                 : 'text-negative bg-negative/10'
@@ -78,34 +78,38 @@ export default function TopKPIs() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-text-primary">Top KPIs Overview</h2>
         <p className="text-sm text-text-secondary mt-1">
-          Key performance indicators at a glance
+          Chocolate raw materials — key performance indicators at a glance
         </p>
       </div>
 
       {/* Main KPI - Actual SCO/MT */}
       <div className="mb-6">
-        <div className="bg-gradient-to-r from-primary to-accent rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#3a1f14] via-primary to-[#4a2a1a] rounded-2xl p-7 text-white shadow-lg shadow-primary/15">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gold/10 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+
+          <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white/80 mb-1">Actual SCO/MT</p>
-              <p className="text-4xl font-bold">142.8</p>
-              <p className="text-sm text-white/70 mt-1">€/MT &middot; Current Period</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-accent-light/70 mb-2">Actual SCO/MT</p>
+              <p className="text-5xl font-bold tracking-tight">142.8</p>
+              <p className="text-sm text-white/50 mt-1.5 font-medium">&euro;/MT &middot; Current Period</p>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white/15 backdrop-blur-sm rounded-lg px-4 py-3 text-center">
-                <p className="text-xs text-white/70 mb-1">vs Last Year</p>
-                <p className="text-lg font-bold">+12.4</p>
-                <p className="text-xs text-green-300 font-medium">+9.5%</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-5 py-3.5 text-center border border-white/10">
+                <p className="text-[11px] text-white/50 mb-1 font-medium uppercase tracking-wide">vs Last Year</p>
+                <p className="text-xl font-bold">+12.4</p>
+                <p className="text-xs text-positive font-semibold mt-0.5">+9.5%</p>
               </div>
-              <div className="bg-white/15 backdrop-blur-sm rounded-lg px-4 py-3 text-center">
-                <p className="text-xs text-white/70 mb-1">vs PL</p>
-                <p className="text-lg font-bold">-3.2</p>
-                <p className="text-xs text-red-300 font-medium">-2.2%</p>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-5 py-3.5 text-center border border-white/10">
+                <p className="text-[11px] text-white/50 mb-1 font-medium uppercase tracking-wide">vs Plan</p>
+                <p className="text-xl font-bold">-3.2</p>
+                <p className="text-xs text-negative font-semibold mt-0.5">-2.2%</p>
               </div>
-              <div className="bg-white/15 backdrop-blur-sm rounded-lg px-4 py-3 text-center">
-                <p className="text-xs text-white/70 mb-1">vs Target</p>
-                <p className="text-lg font-bold">+5.1</p>
-                <p className="text-xs text-green-300 font-medium">+3.7%</p>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-5 py-3.5 text-center border border-white/10">
+                <p className="text-[11px] text-white/50 mb-1 font-medium uppercase tracking-wide">vs Target</p>
+                <p className="text-xl font-bold">+5.1</p>
+                <p className="text-xs text-positive font-semibold mt-0.5">+3.7%</p>
               </div>
             </div>
           </div>

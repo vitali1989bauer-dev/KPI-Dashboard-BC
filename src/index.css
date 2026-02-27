@@ -1,21 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-sidebar: #1e293b;
-  --color-sidebar-hover: #334155;
-  --color-sidebar-active: #0f172a;
-  --color-primary: #2563eb;
-  --color-primary-light: #3b82f6;
-  --color-accent: #0ea5e9;
-  --color-positive: #10b981;
-  --color-negative: #ef4444;
-  --color-warning: #f59e0b;
+  --color-sidebar: #2c1810;
+  --color-sidebar-hover: #3d261b;
+  --color-sidebar-active: #1a0e09;
+  --color-primary: #6b3a2a;
+  --color-primary-light: #8b5e3c;
+  --color-accent: #c8956c;
+  --color-accent-light: #dbb596;
+  --color-gold: #d4a04a;
+  --color-gold-light: #e8c87a;
+  --color-positive: #2d8659;
+  --color-negative: #c43e3e;
+  --color-warning: #d4a04a;
   --color-card: #ffffff;
-  --color-bg: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #64748b;
-  --color-text-muted: #94a3b8;
+  --color-bg: #faf6f1;
+  --color-bg-warm: #f3ece3;
+  --color-border: #e8dfd4;
+  --color-border-hover: #d4c4b0;
+  --color-text-primary: #2c1810;
+  --color-text-secondary: #6b5c52;
+  --color-text-muted: #9b8b7e;
 }
 
 * {
@@ -41,10 +46,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d4c4b0;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #9b8b7e;
+}
+
+.card-hover {
+  transition: all 0.25s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 8px 30px rgba(44, 24, 16, 0.08), 0 2px 8px rgba(44, 24, 16, 0.04);
+  border-color: var(--color-border-hover);
+  transform: translateY(-1px);
 }

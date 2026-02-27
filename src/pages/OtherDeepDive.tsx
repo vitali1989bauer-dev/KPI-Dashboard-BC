@@ -1,35 +1,51 @@
-import { BarChart3, TrendingUp, Activity, FileText } from 'lucide-react'
+import { BarChart3, TrendingUp, Activity, FileText, Bean, Truck } from 'lucide-react'
 
 const insights = [
   {
     icon: TrendingUp,
-    title: 'Revenue Growth Trajectory',
+    title: 'Cocoa Butter Margin Recovery',
     description:
-      'Revenue is trending 4.2% above last year, driven primarily by pricing improvements in the Premium and Specialty segments.',
+      'Cocoa butter margins recovered +1.8pp vs LY, driven by favorable press ratios and strong demand from confectionery clients. Specialty compounds show +3.2pp improvement.',
     status: 'On Track',
     statusColor: 'text-positive bg-positive/10',
   },
   {
-    icon: Activity,
-    title: 'Working Capital Efficiency',
+    icon: Bean,
+    title: 'Origin Sourcing Diversification',
     description:
-      'Days Sales Outstanding reduced by 3 days vs LY. Inventory turnover improved by 0.8x, indicating better supply chain management.',
+      'Ivory Coast dependency reduced from 62% to 54%. Ghana and Ecuador volumes increased by 18% and 12% respectively, improving supply chain resilience.',
     status: 'Improved',
     statusColor: 'text-positive bg-positive/10',
   },
   {
-    icon: BarChart3,
-    title: 'Customer Retention',
+    icon: Truck,
+    title: 'Cocoa Bean Inventory Levels',
     description:
-      'Customer churn rate at 2.1%, slightly above the 1.8% target. Three key accounts flagged for proactive retention measures.',
+      'Current bean stock at 14.2 weeks of cover, slightly below the 16-week target. Spot purchases initiated for Q2 production requirements. ICCO prices volatile.',
     status: 'Attention',
     statusColor: 'text-warning bg-warning/10',
   },
   {
     icon: FileText,
-    title: 'Contract Renewals Pipeline',
+    title: 'Customer Contract Renewals',
     description:
-      '15 contracts worth 8.4 M€ up for renewal in Q2. Early engagement initiated for top 5 accounts.',
+      '12 long-term supply contracts worth 11.2 M€ up for renewal in Q2. Nestlé and Mondelez negotiations in progress with +4% price adjustment proposed.',
+    status: 'In Progress',
+    statusColor: 'text-primary bg-primary/10',
+  },
+  {
+    icon: Activity,
+    title: 'Processing Yield Optimization',
+    description:
+      'Cocoa nib-to-liquor yield improved to 83.4% (+0.6pp vs target). New roasting profiles for Ecuadorian beans delivering better flavor extraction with lower energy consumption.',
+    status: 'Improved',
+    statusColor: 'text-positive bg-positive/10',
+  },
+  {
+    icon: BarChart3,
+    title: 'Sustainability Certification Progress',
+    description:
+      'Rainforest Alliance certified volume at 38% of total intake (target: 45% by year-end). UTZ conversion program on track for DACH and Nordics clusters.',
     status: 'In Progress',
     statusColor: 'text-primary bg-primary/10',
   },
@@ -41,7 +57,7 @@ export default function OtherDeepDive() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-text-primary">Other Deep-dive</h2>
         <p className="text-sm text-text-secondary mt-1">
-          Additional business insights and operational metrics
+          Cocoa supply chain insights and operational metrics
         </p>
       </div>
 
@@ -49,17 +65,17 @@ export default function OtherDeepDive() {
         {insights.map((item) => (
           <div
             key={item.title}
-            className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-primary/20 transition-all"
+            className="bg-card rounded-xl border border-border p-5 card-hover"
           >
             <div className="flex items-start gap-4">
-              <div className="p-2.5 rounded-lg bg-primary/10 shrink-0">
+              <div className="p-2.5 rounded-xl bg-accent/10 shrink-0">
                 <item.icon className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold text-text-primary">{item.title}</h3>
                   <span
-                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${item.statusColor}`}
+                    className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${item.statusColor}`}
                   >
                     {item.status}
                   </span>

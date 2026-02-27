@@ -60,17 +60,17 @@ export const topKpis: KpiCard[] = [
   },
   {
     id: 'market-price-index',
-    title: 'Market Price Index Raw Materials',
+    title: 'Cocoa Commodity Price Index',
     value: 108.5,
     unit: 'Index',
     change: -3.1,
     changeLabel: 'vs LY',
     status: 'warning',
-    subtitle: 'Slight decrease vs LY',
+    subtitle: 'ICCO daily price softening',
   },
   {
     id: 'position-valuation',
-    title: 'Position Valuation Raw Materials',
+    title: 'Position Valuation Cocoa & Inputs',
     value: 2.4,
     unit: 'M€',
     change: -12.3,
@@ -137,11 +137,11 @@ export interface PricingData {
 }
 
 export const pricingDeepDiveData: PricingData[] = [
-  { segment: 'Premium', avgPrice: 285.4, priceVsLY: 5.2, margin: 32.1, marginVsLY: 1.8, volume: 12400 },
-  { segment: 'Standard', avgPrice: 178.2, priceVsLY: 3.1, margin: 22.5, marginVsLY: -0.4, volume: 34500 },
-  { segment: 'Economy', avgPrice: 112.6, priceVsLY: -1.2, margin: 14.8, marginVsLY: -2.1, volume: 28700 },
-  { segment: 'Bulk', avgPrice: 89.3, priceVsLY: 2.8, margin: 8.2, marginVsLY: 0.6, volume: 52100 },
-  { segment: 'Specialty', avgPrice: 342.1, priceVsLY: 7.5, margin: 38.4, marginVsLY: 3.2, volume: 5600 },
+  { segment: 'Cocoa Butter', avgPrice: 285.4, priceVsLY: 5.2, margin: 32.1, marginVsLY: 1.8, volume: 12400 },
+  { segment: 'Cocoa Powder', avgPrice: 178.2, priceVsLY: 3.1, margin: 22.5, marginVsLY: -0.4, volume: 34500 },
+  { segment: 'Cocoa Liquor', avgPrice: 112.6, priceVsLY: -1.2, margin: 14.8, marginVsLY: -2.1, volume: 28700 },
+  { segment: 'Chocolate Couverture', avgPrice: 89.3, priceVsLY: 2.8, margin: 8.2, marginVsLY: 0.6, volume: 52100 },
+  { segment: 'Specialty Compounds', avgPrice: 342.1, priceVsLY: 7.5, margin: 38.4, marginVsLY: 3.2, volume: 5600 },
 ]
 
 export interface VolumeData {
@@ -175,15 +175,17 @@ export interface CostItem {
 }
 
 export const costDeepDiveData: CostItem[] = [
-  { category: 'Raw Materials', actual: 45.2, budget: 42.8, variance: 2.4, variancePct: 5.6 },
-  { category: 'Energy', actual: 12.8, budget: 11.5, variance: 1.3, variancePct: 11.3 },
-  { category: 'Logistics', actual: 8.4, budget: 8.9, variance: -0.5, variancePct: -5.6 },
+  { category: 'Cocoa Beans', actual: 45.2, budget: 42.8, variance: 2.4, variancePct: 5.6 },
+  { category: 'Sugar & Sweeteners', actual: 12.8, budget: 11.5, variance: 1.3, variancePct: 11.3 },
+  { category: 'Milk Powder', actual: 8.4, budget: 8.9, variance: -0.5, variancePct: -5.6 },
   { category: 'Packaging', actual: 6.2, budget: 6.0, variance: 0.2, variancePct: 3.3 },
-  { category: 'Labor', actual: 15.1, budget: 15.4, variance: -0.3, variancePct: -1.9 },
-  { category: 'Overhead', actual: 9.8, budget: 10.2, variance: -0.4, variancePct: -3.9 },
+  { category: 'Energy & Processing', actual: 15.1, budget: 15.4, variance: -0.3, variancePct: -1.9 },
+  { category: 'Logistics', actual: 9.8, budget: 10.2, variance: -0.4, variancePct: -3.9 },
 ]
 
 export const regions = ['All Regions', 'Europe', 'North America', 'Asia Pacific', 'Latin America']
 export const countryClusters = ['All Clusters', 'DACH', 'Nordics', 'Benelux', 'Southern Europe', 'UK & Ireland']
-export const customerSegments = ['All Segments', 'Food & Beverage', 'Pharma', 'Chemicals', 'Agriculture', 'Retail']
+export const customerSegments = ['All Segments', 'Confectionery', 'Bakery & Pastry', 'Dairy & Ice Cream', 'Beverage', 'Industrial']
+export const customers = ['All Customers', 'Nestlé', 'Mondelez', 'Ferrero', 'Lindt & Sprüngli', 'Mars']
+export const productGroups = ['All Products', 'Cocoa Butter', 'Cocoa Powder', 'Cocoa Liquor', 'Couverture', 'Compounds']
 export const timePeriods = ['Month-to-month', 'PL period', 'YTD', 'Full year / Fiscal year']

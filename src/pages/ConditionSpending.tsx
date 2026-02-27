@@ -27,20 +27,20 @@ export default function ConditionSpending() {
 
       {/* Summary Row */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-card rounded-xl border border-border p-5">
-          <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">
+        <div className="bg-card rounded-xl border border-border p-5 card-hover">
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
             Total Actual (YTD)
           </p>
-          <p className="text-2xl font-bold text-text-primary">{totalActual.toFixed(1)} M€</p>
+          <p className="text-2xl font-bold text-text-primary">{totalActual.toFixed(1)} M&euro;</p>
         </div>
-        <div className="bg-card rounded-xl border border-border p-5">
-          <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">
+        <div className="bg-card rounded-xl border border-border p-5 card-hover">
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
             Total Last Year
           </p>
-          <p className="text-2xl font-bold text-text-primary">{totalLY.toFixed(1)} M€</p>
+          <p className="text-2xl font-bold text-text-primary">{totalLY.toFixed(1)} M&euro;</p>
         </div>
-        <div className="bg-card rounded-xl border border-border p-5">
-          <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">
+        <div className="bg-card rounded-xl border border-border p-5 card-hover">
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
             Change vs LY
           </p>
           <div className="flex items-center gap-2">
@@ -53,19 +53,19 @@ export default function ConditionSpending() {
       {/* Bar Chart */}
       <div className="bg-card rounded-xl border border-border p-6">
         <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wide">
-          Monthly Condition Spending (M€)
+          Monthly Condition Spending (M&euro;)
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={conditionSpendingData} barGap={4}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e8dfd4" vertical={false} />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 12, fill: '#64748b' }}
-              axisLine={{ stroke: '#e2e8f0' }}
+              tick={{ fontSize: 12, fill: '#6b5c52' }}
+              axisLine={{ stroke: '#e8dfd4' }}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 12, fill: '#64748b' }}
+              tick={{ fontSize: 12, fill: '#6b5c52' }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v: number) => `${v}M€`}
@@ -73,9 +73,9 @@ export default function ConditionSpending() {
             <Tooltip
               formatter={(value) => [`${Number(value).toFixed(1)} M€`]}
               contentStyle={{
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                borderRadius: '10px',
+                border: '1px solid #e8dfd4',
+                boxShadow: '0 4px 16px rgba(44,24,16,0.08)',
                 fontSize: '13px',
               }}
             />
@@ -87,15 +87,15 @@ export default function ConditionSpending() {
             <Bar
               dataKey="actual"
               name="Actual"
-              fill="#2563eb"
-              radius={[4, 4, 0, 0]}
+              fill="#6b3a2a"
+              radius={[6, 6, 0, 0]}
               maxBarSize={36}
             />
             <Bar
               dataKey="lastYear"
               name="Last Year"
-              fill="#94a3b8"
-              radius={[4, 4, 0, 0]}
+              fill="#d4c4b0"
+              radius={[6, 6, 0, 0]}
               maxBarSize={36}
             />
           </BarChart>

@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { ChevronDown, Filter } from 'lucide-react'
+import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import {
   regions,
   countryClusters,
   customerSegments,
+  customers,
+  productGroups,
   timePeriods,
 } from '../data/mockData'
 
@@ -15,16 +17,16 @@ function Dropdown({ label, options }: { label: string; options: string[] }) {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-border rounded-lg text-sm text-text-secondary hover:border-primary/40 hover:text-text-primary transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-bg border border-border rounded-lg text-sm text-text-secondary hover:border-accent/40 hover:bg-white transition-all cursor-pointer"
       >
-        <span className="text-text-muted text-xs font-medium">{label}:</span>
-        <span className="font-medium max-w-[120px] truncate">{selected}</span>
-        <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
+        <span className="text-text-muted text-[11px] font-semibold uppercase tracking-wide">{label}</span>
+        <span className="font-medium max-w-[120px] truncate text-text-primary">{selected}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 mt-1 bg-white border border-border rounded-lg shadow-lg py-1 z-50 min-w-[180px]">
+          <div className="absolute top-full left-0 mt-1 bg-white border border-border rounded-xl shadow-lg shadow-black/8 py-1.5 z-50 min-w-[200px]">
             {options.map((opt) => (
               <button
                 key={opt}
@@ -32,8 +34,8 @@ function Dropdown({ label, options }: { label: string; options: string[] }) {
                   setSelected(opt)
                   setOpen(false)
                 }}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-bg transition-colors cursor-pointer ${
-                  selected === opt ? 'text-primary font-medium bg-primary/5' : 'text-text-secondary'
+                className={`w-full text-left px-3.5 py-2 text-sm hover:bg-bg-warm transition-colors cursor-pointer ${
+                  selected === opt ? 'text-primary font-semibold bg-accent/8' : 'text-text-secondary'
                 }`}
               >
                 {opt}
@@ -55,15 +57,15 @@ export default function FilterBar({ activeTimePeriod, onTimePeriodChange }: Filt
   return (
     <div className="bg-white border-b border-border">
       {/* Time period tabs */}
-      <div className="px-6 pt-4 flex items-center gap-1">
+      <div className="px-6 pt-3 flex items-center gap-0.5">
         {timePeriods.map((period) => (
           <button
             key={period}
             onClick={() => onTimePeriodChange(period)}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all cursor-pointer ${
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all duration-200 cursor-pointer ${
               activeTimePeriod === period
-                ? 'bg-primary text-white'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg'
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-text-muted hover:text-text-primary hover:bg-bg-warm'
             }`}
           >
             {period}
@@ -73,18 +75,12 @@ export default function FilterBar({ activeTimePeriod, onTimePeriodChange }: Filt
 
       {/* Filter dropdowns */}
       <div className="px-6 py-3 flex items-center gap-2 flex-wrap">
-        <Filter className="w-4 h-4 text-text-muted mr-1" />
+        <SlidersHorizontal className="w-4 h-4 text-accent mr-1" />
         <Dropdown label="Region" options={regions} />
-        <Dropdown label="Country-cluster" options={countryClusters} />
-        <Dropdown label="Customer segment" options={customerSegments} />
-        <Dropdown
-          label="Customer"
-          options={['All Customers', 'Nestlé', 'Unilever', 'P&G', 'BASF']}
-        />
-        <Dropdown
-          label="Product group"
-          options={['All Products', 'Group A', 'Group B', 'Group C']}
-        />
+        <Dropdown label="Cluster" options={countryClusters} />
+        <Dropdown label="Segment" options={customerSegments} />
+        <Dropdown label="Customer" options={customers} />
+        <Dropdown label="Product" options={productGroups} />
       </div>
     </div>
   )
