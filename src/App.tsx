@@ -14,9 +14,9 @@ export default function App() {
   const [timePeriod, setTimePeriod] = useState('YTD')
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen">
       <Sidebar />
-      <div className="flex-1 ml-64 min-w-0 overflow-x-hidden">
+      <div className="ml-64">
         <FilterBar activeTimePeriod={timePeriod} onTimePeriodChange={setTimePeriod} />
         <main className="p-6">
           <Routes>
