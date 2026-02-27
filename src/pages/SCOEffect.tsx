@@ -8,7 +8,6 @@ import {
   ResponsiveContainer,
   Cell,
   ReferenceLine,
-  Text,
 } from 'recharts'
 import { scoWaterfallData } from '../data/mockData'
 
@@ -70,34 +69,38 @@ function buildWaterfallData(): WaterfallDataPoint[] {
   return result
 }
 
-function CustomLabel(props: Record<string, unknown>) {
-  const { x, y, width, displayValue, fill } = props as {
+const waterfallData = buildWaterfallData()
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderLabel(props: any) {
+  const { x, y, width, index } = props as {
     x: number
     y: number
     width: number
-    displayValue: number
-    fill: string
+    index: number
   }
-  const isTotal = fill === TOTAL_COLOR
+  if (index == null || !waterfallData[index]) return null
+  const entry = waterfallData[index]
+  const isTotal = entry.fill === TOTAL_COLOR
+  const label = isTotal
+    ? entry.displayValue.toFixed(1)
+    : `${entry.displayValue >= 0 ? '+' : ''}${entry.displayValue.toFixed(1)}`
+
   return (
-    <Text
+    <text
       x={(x ?? 0) + (width ?? 0) / 2}
       y={(y ?? 0) - 8}
       textAnchor="middle"
-      fill={fill}
+      fill={entry.fill}
       fontSize={13}
       fontWeight={600}
     >
-      {isTotal
-        ? displayValue.toFixed(1)
-        : `${displayValue >= 0 ? '+' : ''}${displayValue.toFixed(1)}`}
-    </Text>
+      {label}
+    </text>
   )
 }
 
 export default function SCOEffect() {
-  const data = buildWaterfallData()
-
   return (
     <div>
       <div className="mb-6">
@@ -139,7 +142,7 @@ export default function SCOEffect() {
           SCO/MT Waterfall Bridge
         </h3>
         <ResponsiveContainer width="100%" height={420}>
-          <BarChart data={data} barCategoryGap="20%">
+          <BarChart data={waterfallData} barCategoryGap="20%">
             <CartesianGrid strokeDasharray="3 3" stroke="#e8dfd4" vertical={false} />
             <XAxis
               dataKey="name"
@@ -156,7 +159,7 @@ export default function SCOEffect() {
             />
             <Tooltip
               formatter={(_value, _name, props) => {
-                const p = props.payload as WaterfallDataPoint
+                const p = (props as { payload: WaterfallDataPoint }).payload
                 return [
                   `${p.displayValue >= 0 ? '+' : ''}${p.displayValue.toFixed(1)} €/MT`,
                   p.fill === TOTAL_COLOR ? 'Total' : 'Effect',
@@ -175,9 +178,9 @@ export default function SCOEffect() {
               dataKey="value"
               stackId="waterfall"
               radius={[6, 6, 0, 0]}
-              label={<CustomLabel />}
+              label={renderLabel}
             >
-              {data.map((entry, idx) => (
+              {waterfallData.map((entry, idx) => (
                 <Cell key={idx} fill={entry.fill} />
               ))}
             </Bar>
