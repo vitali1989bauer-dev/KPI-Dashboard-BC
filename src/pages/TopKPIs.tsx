@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { topKpis, type KpiCard } from '../data/mockData'
+import { getTopKpis, type KpiCard } from '../data/mockData'
+import { useFilters } from '../FilterContext'
 
 function KpiCardComponent({ kpi }: { kpi: KpiCard }) {
   const statusColors = {
@@ -73,6 +74,13 @@ function KpiCardComponent({ kpi }: { kpi: KpiCard }) {
 }
 
 export default function TopKPIs() {
+  const { filters } = useFilters()
+  const kpis = getTopKpis(filters)
+  const hero = kpis[0]
+  const vsLy = kpis[1]
+  const vsPl = kpis[2]
+  const vsTgt = kpis[3]
+
   return (
     <div>
       <div className="mb-6">
@@ -85,31 +93,30 @@ export default function TopKPIs() {
       {/* Main KPI - Actual SCO/MT */}
       <div className="mb-6">
         <div className="relative overflow-hidden bg-gradient-to-br from-[#3a1f14] via-primary to-[#4a2a1a] rounded-2xl p-7 text-white shadow-lg shadow-primary/15">
-          {/* Decorative background elements */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-gold/10 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
 
           <div className="relative flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-accent-light/70 mb-2">Actual SCO/MT</p>
-              <p className="text-5xl font-bold tracking-tight">142.8</p>
-              <p className="text-sm text-white/50 mt-1.5 font-medium">&euro;/MT &middot; Current Period</p>
+              <p className="text-5xl font-bold tracking-tight">{(hero.value as number).toFixed(1)}</p>
+              <p className="text-sm text-white/50 mt-1.5 font-medium">&euro;/MT &middot; {filters.timePeriod}</p>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl px-5 py-3.5 text-center border border-white/10">
                 <p className="text-[11px] text-white/50 mb-1 font-medium uppercase tracking-wide">vs Last Year</p>
-                <p className="text-xl font-bold">+12.4</p>
-                <p className="text-xs text-positive font-semibold mt-0.5">+9.5%</p>
+                <p className="text-xl font-bold">{(vsLy.value as number) >= 0 ? '+' : ''}{(vsLy.value as number).toFixed(1)}</p>
+                <p className={`text-xs font-semibold mt-0.5 ${(vsLy.change ?? 0) >= 0 ? 'text-positive' : 'text-negative'}`}>{(vsLy.change ?? 0) >= 0 ? '+' : ''}{vsLy.change}%</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl px-5 py-3.5 text-center border border-white/10">
                 <p className="text-[11px] text-white/50 mb-1 font-medium uppercase tracking-wide">vs Plan</p>
-                <p className="text-xl font-bold">-3.2</p>
-                <p className="text-xs text-negative font-semibold mt-0.5">-2.2%</p>
+                <p className="text-xl font-bold">{(vsPl.value as number) >= 0 ? '+' : ''}{(vsPl.value as number).toFixed(1)}</p>
+                <p className={`text-xs font-semibold mt-0.5 ${(vsPl.change ?? 0) >= 0 ? 'text-positive' : 'text-negative'}`}>{(vsPl.change ?? 0) >= 0 ? '+' : ''}{vsPl.change}%</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl px-5 py-3.5 text-center border border-white/10">
                 <p className="text-[11px] text-white/50 mb-1 font-medium uppercase tracking-wide">vs Target</p>
-                <p className="text-xl font-bold">+5.1</p>
-                <p className="text-xs text-positive font-semibold mt-0.5">+3.7%</p>
+                <p className="text-xl font-bold">{(vsTgt.value as number) >= 0 ? '+' : ''}{(vsTgt.value as number).toFixed(1)}</p>
+                <p className={`text-xs font-semibold mt-0.5 ${(vsTgt.change ?? 0) >= 0 ? 'text-positive' : 'text-negative'}`}>{(vsTgt.change ?? 0) >= 0 ? '+' : ''}{vsTgt.change}%</p>
               </div>
             </div>
           </div>
@@ -118,7 +125,7 @@ export default function TopKPIs() {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {topKpis.slice(4).map((kpi) => (
+        {kpis.slice(4).map((kpi) => (
           <KpiCardComponent key={kpi.id} kpi={kpi} />
         ))}
       </div>

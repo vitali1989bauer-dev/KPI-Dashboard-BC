@@ -23,47 +23,45 @@
   --color-text-muted: #9b8b7e;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  html {
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #d4c4b0;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9b8b7e;
+  }
 }
 
-html {
-  overflow-x: hidden;
-}
-
-body {
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background-color: var(--color-bg);
-  color: var(--color-text-primary);
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #d4c4b0;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9b8b7e;
-}
-
-.card-hover {
-  transition: all 0.25s ease;
-}
-.card-hover:hover {
-  box-shadow: 0 8px 30px rgba(44, 24, 16, 0.08), 0 2px 8px rgba(44, 24, 16, 0.04);
-  border-color: var(--color-border-hover);
-  transform: translateY(-1px);
+@layer components {
+  .card-hover {
+    transition: all 0.25s ease;
+  }
+  .card-hover:hover {
+    box-shadow: 0 8px 30px rgba(44, 24, 16, 0.08), 0 2px 8px rgba(44, 24, 16, 0.04);
+    border-color: var(--color-border-hover);
+    transform: translateY(-1px);
+  }
 }
