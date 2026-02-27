@@ -16,7 +16,7 @@ export default function App() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 ml-64 min-w-0 overflow-hidden">
+      <div className="flex-1 ml-64 min-w-0 overflow-x-hidden">
         <FilterBar activeTimePeriod={timePeriod} onTimePeriodChange={setTimePeriod} />
         <main className="p-6">
           <Routes>
