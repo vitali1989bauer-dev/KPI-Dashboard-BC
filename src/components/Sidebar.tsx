@@ -41,7 +41,7 @@ const navGroups = [
     label: 'System',
     items: [
       { path: '/data-connections', label: 'Data Connections', icon: Database },
-      { path: '/implementation', label: 'Implementation', icon: HelpCircle },
+      { path: '/implementation', label: 'FAQ', icon: HelpCircle },
     ],
   },
 ]
