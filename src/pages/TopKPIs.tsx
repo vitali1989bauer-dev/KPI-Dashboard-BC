@@ -86,7 +86,7 @@ export default function TopKPIs() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-text-primary">Top KPIs Overview</h2>
         <p className="text-sm text-text-secondary mt-1">
-          Chocolate raw materials — key performance indicators at a glance
+          Fertilizer &amp; salt products — key performance indicators at a glance
         </p>
       </div>
 

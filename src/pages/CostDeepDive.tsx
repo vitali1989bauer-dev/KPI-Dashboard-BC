@@ -26,7 +26,7 @@ export default function CostDeepDive() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-text-primary">Cost Related Deep-dive</h2>
         <p className="text-sm text-text-secondary mt-1">
-          Cocoa &amp; ingredient cost analysis — Actual vs Budget by category
+          Mining, processing &amp; distribution cost analysis — Actual vs Budget
         </p>
       </div>
 

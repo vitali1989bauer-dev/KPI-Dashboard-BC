@@ -24,7 +24,7 @@ export default function VolumeDeepDive() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-text-primary">Volume Deep-dive</h2>
         <p className="text-sm text-text-secondary mt-1">
-          Cocoa product volume trends — Actual vs Forecast vs Last Year
+          K+S product volume trends — Actual vs Forecast vs Last Year
         </p>
       </div>
 

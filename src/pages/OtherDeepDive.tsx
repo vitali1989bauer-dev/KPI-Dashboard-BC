@@ -1,46 +1,52 @@
-import { BarChart3, TrendingUp, Activity, FileText, Bean, Truck } from 'lucide-react'
+import { BarChart3, TrendingUp, Activity, FileText, Sprout, Truck } from 'lucide-react'
 import { useFilters } from '../FilterContext'
 
 const insightsBase = [
   {
     icon: TrendingUp,
-    title: 'Cocoa Butter Margin Recovery',
-    description: 'Cocoa butter margins recovered +1.8pp vs LY, driven by favorable press ratios and strong demand from confectionery clients. Specialty compounds show +3.2pp improvement.',
+    title: 'Potash Margin Recovery',
+    description:
+      'MOP margins recovered +1.5pp vs LY, driven by favorable global potash pricing and strong spring application demand in European arable farming. Fertilizer specialties show +2.8pp improvement.',
     status: 'On Track',
     statusColor: 'text-positive bg-positive/10',
   },
   {
-    icon: Bean,
-    title: 'Origin Sourcing Diversification',
-    description: 'Ivory Coast dependency reduced from 62% to 54%. Ghana and Ecuador volumes increased by 18% and 12% respectively, improving supply chain resilience.',
-    status: 'Improved',
+    icon: Sprout,
+    title: 'Agricultural Season Outlook',
+    description:
+      'Spring application season progressing well across DACH and Nordics. Farmer purchasing sentiment positive with early ordering up 14% vs LY. Specialty crop segment showing strongest growth at +18%.',
+    status: 'Positive',
     statusColor: 'text-positive bg-positive/10',
   },
   {
     icon: Truck,
-    title: 'Cocoa Bean Inventory Levels',
-    description: 'Current bean stock at 14.2 weeks of cover, slightly below the 16-week target. Spot purchases initiated for Q2 production requirements. ICCO prices volatile.',
+    title: 'Mining Output & Inventory Levels',
+    description:
+      'Bethune mine output at 96.2% of target capacity. Werra and Zielitz sites operating at 94.8%. Potash inventory at 11.4 weeks of cover, slightly below the 13-week target. Spot purchases initiated for Q2 commitments.',
     status: 'Attention',
     statusColor: 'text-warning bg-warning/10',
   },
   {
     icon: FileText,
     title: 'Customer Contract Renewals',
-    description: '12 long-term supply contracts worth 11.2 M€ up for renewal in Q2. Nestlé and Mondelez negotiations in progress with +4% price adjustment proposed.',
+    description:
+      '18 long-term supply contracts worth 28.5 M€ up for renewal in Q2. BayWa and AGRAVIS negotiations in progress with +3.5% price adjustment proposed. Nutrien framework agreement extended to 2027.',
     status: 'In Progress',
     statusColor: 'text-primary bg-primary/10',
   },
   {
     icon: Activity,
-    title: 'Processing Yield Optimization',
-    description: 'Cocoa nib-to-liquor yield improved to 83.4% (+0.6pp vs target). New roasting profiles for Ecuadorian beans delivering better flavor extraction with lower energy consumption.',
+    title: 'Energy Efficiency & Process Optimization',
+    description:
+      'Natural gas consumption per MT of KCl reduced by 4.2% through heat recovery improvements at Zielitz. Electrolysis energy costs down 6.1% at Bernburg salt facility through off-peak scheduling.',
     status: 'Improved',
     statusColor: 'text-positive bg-positive/10',
   },
   {
     icon: BarChart3,
-    title: 'Sustainability Certification Progress',
-    description: 'Rainforest Alliance certified volume at 38% of total intake (target: 45% by year-end). UTZ conversion program on track for DACH and Nordics clusters.',
+    title: 'Sustainability & Tailings Management',
+    description:
+      'Saline water injection program on track — 92% of production waste processed via deep well injection. CO₂ intensity per MT product reduced by 8.3% vs baseline. EMAS certification renewed for all German sites.',
     status: 'In Progress',
     statusColor: 'text-primary bg-primary/10',
   },
@@ -55,7 +61,7 @@ export default function OtherDeepDive() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-text-primary">Other Deep-dive</h2>
         <p className="text-sm text-text-secondary mt-1">
-          {regionLabel} cocoa supply chain insights and operational metrics
+          {regionLabel} fertilizer &amp; salt supply chain insights and operational metrics
         </p>
       </div>
 

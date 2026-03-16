@@ -17,7 +17,7 @@ export default function PricingDeepDive() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-text-primary">Pricing Deep-dives</h2>
         <p className="text-sm text-text-secondary mt-1">
-          Pricing analysis by cocoa product category
+          Pricing analysis by fertilizer &amp; salt product category
         </p>
       </div>
 
