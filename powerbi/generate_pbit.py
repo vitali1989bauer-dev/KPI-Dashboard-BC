@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-K+S AgriMetrics — Power BI Template (.pbit) Generator
-=====================================================
+K+S AgriMetrics — Power BI Template (.pbit) Generator  v2
+==========================================================
 Run:   python3 generate_pbit.py
 Output: KS_AgriMetrics_Dashboard.pbit
 
@@ -14,12 +14,11 @@ import zipfile
 import uuid
 import os
 import csv
-import sys
+import struct
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")
 OUTPUT = os.path.join(SCRIPT_DIR, "KS_AgriMetrics_Dashboard.pbit")
-THEME_FILE = os.path.join(SCRIPT_DIR, "KS_AgriMetrics_Theme.json")
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +69,6 @@ def m_literal(val):
         return str(val)
     if isinstance(val, float):
         return str(val)
-    # String — escape double quotes
     escaped = str(val).replace('"', '""')
     return f'"{escaped}"'
 
@@ -89,38 +87,37 @@ def infer_m_types(headers, rows):
     types = ["text"] * len(headers)
     for row in rows:
         for i, val in enumerate(row):
-            if val is not None:
+            if val is not None and i < len(types):
                 types[i] = m_type_for(val)
-        if all(t != "text" or rows[0][i] is not None for i, t in enumerate(types)):
-            break
     return types
 
 
 def build_m_expression(headers, rows, m_types):
     """Build M #table() expression with inline data."""
-    # Type declaration
-    type_parts = []
-    for h, t in zip(headers, m_types):
-        type_parts.append(f"[{h} = {t}]")
-    type_decl = "type table " + ", ".join(type_parts)
+    # Type declaration — all columns in one bracket pair
+    col_defs = ", ".join(f"{h} = {t}" for h, t in zip(headers, m_types))
+    type_decl = f"type table [{col_defs}]"
 
-    # Data rows
-    row_strs = []
-    for row in rows:
-        vals = ", ".join(m_literal(v) for v in row)
-        row_strs.append(f"        {{{vals}}}")
-    data_block = ",\n".join(row_strs)
+    lines = []
+    lines.append("let")
+    lines.append("    Source = #table(")
+    lines.append(f"        {type_decl},")
+    lines.append("        {")
 
-    expr = f"""let
-    Source = #table(
-        {type_decl},
-        {{
-{data_block}
-        }}
-    )
-in
-    Source"""
-    return expr
+    for i, row in enumerate(rows):
+        # Pad row if needed
+        while len(row) < len(headers):
+            row.append(None)
+        vals = ", ".join(m_literal(v) for v in row[:len(headers)])
+        comma = "," if i < len(rows) - 1 else ""
+        lines.append(f"            {{{vals}}}{comma}")
+
+    lines.append("        }")
+    lines.append("    )")
+    lines.append("in")
+    lines.append("    Source")
+
+    return lines
 
 
 def tom_datatype(m_type):
@@ -134,7 +131,7 @@ def tom_datatype(m_type):
 
 
 # ---------------------------------------------------------------------------
-# Table definitions (name → csv filename)
+# Table definitions
 # ---------------------------------------------------------------------------
 
 TABLE_CSV_MAP = {
@@ -162,166 +159,50 @@ TABLE_CSV_MAP = {
 
 
 # ---------------------------------------------------------------------------
-# DAX Measures — grouped by destination table
+# DAX Measures
 # ---------------------------------------------------------------------------
 
-MEASURES = {
-    "_Measures": [
-        # Color constants
-        ("_Color_Primary", '"#173B7A"'),
-        ("_Color_Positive", '"#1a8754"'),
-        ("_Color_Negative", '"#c43e3e"'),
-        ("_Color_Warning", '"#d49a1a"'),
-        ("_Color_Grey", '"#667885"'),
-        ("_Color_LightGrey", '"#b8c2cf"'),
-        # Hero KPIs
-        ("Actual SCO/MT", "LOOKUPVALUE('01_TopKPIs'[Value], '01_TopKPIs'[KPI_ID], \"actual-sco\")"),
-        ("Delta vs LY", "LOOKUPVALUE('01_TopKPIs'[Value], '01_TopKPIs'[KPI_ID], \"vs-ly\")"),
-        ("Delta vs PL", "LOOKUPVALUE('01_TopKPIs'[Value], '01_TopKPIs'[KPI_ID], \"vs-pl\")"),
-        ("Delta vs Target", "LOOKUPVALUE('01_TopKPIs'[Value], '01_TopKPIs'[KPI_ID], \"vs-target\")"),
-        ("Volume Forecast Fulfillment", "LOOKUPVALUE('01_TopKPIs'[Value], '01_TopKPIs'[KPI_ID], \"volume-forecast\")"),
-        ("Market Price Index", "LOOKUPVALUE('01_TopKPIs'[Value], '01_TopKPIs'[KPI_ID], \"market-price-index\")"),
-        ("Position Valuation", "LOOKUPVALUE('01_TopKPIs'[Value], '01_TopKPIs'[KPI_ID], \"position-valuation\")"),
-        ("Revenue Leakage", "LOOKUPVALUE('01_TopKPIs'[Value], '01_TopKPIs'[KPI_ID], \"revenue-leakage\")"),
-        # KPI status color
-        (
-            "KPI Status Color",
-            'VAR Status = SELECTEDVALUE(\'01_TopKPIs\'[Status])\n'
-            'RETURN SWITCH(Status, "positive", "#1a8754", "negative", "#c43e3e", "warning", "#d49a1a", "#173B7A")',
-        ),
-        # Product SCO
-        ("Total SCO All Products", "SUM('04_Product_SCO_Contribution'[Total_SCO_M_EUR])"),
-        (
-            "Share of Total",
-            "DIVIDE(\n"
-            "    SUM('04_Product_SCO_Contribution'[Total_SCO_M_EUR]),\n"
-            "    CALCULATE(SUM('04_Product_SCO_Contribution'[Total_SCO_M_EUR]), ALL('04_Product_SCO_Contribution'))\n"
-            ")",
-        ),
-        # SCO Waterfall
-        ("Waterfall Display Value", "SUM('03_SCO_Waterfall'[Value_EUR_MT])"),
-        (
-            "Net SCO Effect",
-            "VAR StartVal = CALCULATE(SUM('03_SCO_Waterfall'[Value_EUR_MT]), '03_SCO_Waterfall'[Type] = \"start\")\n"
-            "VAR EndVal = CALCULATE(SUM('03_SCO_Waterfall'[Value_EUR_MT]), '03_SCO_Waterfall'[Type] = \"end\")\n"
-            "RETURN EndVal - StartVal",
-        ),
-        (
-            "Effect Share",
-            "VAR CurrentVal = SUM('03_SCO_Waterfall'[Value_EUR_MT])\n"
-            "VAR TotalDelta = [Net SCO Effect]\n"
-            "RETURN DIVIDE(CurrentVal, ABS(TotalDelta))",
-        ),
-        (
-            "Waterfall Color",
-            'SWITCH(SELECTEDVALUE(\'03_SCO_Waterfall\'[Type]),\n'
-            '    "start", "#173B7A", "end", "#173B7A",\n'
-            '    "positive", "#1a8754", "negative", "#c43e3e", "#667885")',
-        ),
-        # Market Intelligence
-        (
-            "KS Premium Pct",
-            "VAR LastMonth = LASTDATE('13_Benchmark_Prices'[Month])\n"
-            "VAR KSPrice = CALCULATE(MAX('13_Benchmark_Prices'[KS_Realized_Price_EUR]), '13_Benchmark_Prices'[Month] = LastMonth)\n"
-            "VAR MOPVan = CALCULATE(MAX('13_Benchmark_Prices'[MOP_Vancouver_FOB_EUR]), '13_Benchmark_Prices'[Month] = LastMonth)\n"
-            "RETURN DIVIDE(KSPrice - MOPVan, MOPVan)",
-        ),
-        ("Latest Gas Price", "CALCULATE(MAX('14_Input_Costs'[Natural_Gas_EUR_MWh]), LASTDATE('14_Input_Costs'[Month]))"),
-        ("Latest EUR USD", "CALCULATE(MAX('15_FX_Rates'[EUR_USD]), LASTDATE('15_FX_Rates'[Month]))"),
-        ("Latest Freight Index", "CALCULATE(MAX('14_Input_Costs'[Freight_Index]), LASTDATE('14_Input_Costs'[Month]))"),
-        # Customer Portfolio
-        ("Customers Above Target", "COUNTROWS(FILTER('11_Customer_Portfolio', '11_Customer_Portfolio'[Price_EUR_MT] >= 310))"),
-        (
-            "Customers In Corridor",
-            "COUNTROWS(FILTER('11_Customer_Portfolio',\n"
-            "    '11_Customer_Portfolio'[Price_EUR_MT] >= 260 &&\n"
-            "    '11_Customer_Portfolio'[Price_EUR_MT] < 310))",
-        ),
-        ("Customers Below Limit", "COUNTROWS(FILTER('11_Customer_Portfolio', '11_Customer_Portfolio'[Price_EUR_MT] < 260))"),
-        ("Avg Portfolio Price", "AVERAGE('11_Customer_Portfolio'[Price_EUR_MT])"),
-        ("Total Active Customers", "COUNTROWS('11_Customer_Portfolio')"),
-        (
-            "Price Zone",
-            'VAR Price = SELECTEDVALUE(\'11_Customer_Portfolio\'[Price_EUR_MT])\n'
-            'RETURN IF(Price >= 310, "Above Target", IF(Price >= 260, "In Corridor", "Below Limit"))',
-        ),
-        (
-            "Price Zone Color",
-            'VAR Price = SELECTEDVALUE(\'11_Customer_Portfolio\'[Price_EUR_MT])\n'
-            'RETURN IF(Price >= 310, "#1a8754", IF(Price >= 260, "#d49a1a", "#c43e3e"))',
-        ),
-        (
-            "Margin Zone",
-            'VAR Margin = SELECTEDVALUE(\'11_Customer_Portfolio\'[Margin_Pct])\n'
-            'RETURN IF(Margin >= 28, "Above Target", IF(Margin >= 18, "In Corridor", "Below Limit"))',
-        ),
-        (
-            "Margin Zone Color",
-            'VAR Margin = SELECTEDVALUE(\'11_Customer_Portfolio\'[Margin_Pct])\n'
-            'RETURN IF(Margin >= 28, "#1a8754", IF(Margin >= 18, "#d49a1a", "#c43e3e"))',
-        ),
-        (
-            "Trend Color",
-            'SWITCH(SELECTEDVALUE(\'11_Customer_Portfolio\'[Trend]),\n'
-            '    "up", "#1a8754", "down", "#c43e3e", "#667885")',
-        ),
-        # Pricing & Conditions
-        (
-            "Avg Price Per MT",
-            "DIVIDE(\n"
-            "    SUMX('05_Pricing_by_Product', '05_Pricing_by_Product'[Avg_Price_EUR_MT] * '05_Pricing_by_Product'[Volume_MT]),\n"
-            "    SUM('05_Pricing_by_Product'[Volume_MT])\n"
-            ")",
-        ),
-        (
-            "Avg Margin Pct",
-            "DIVIDE(\n"
-            "    SUMX('05_Pricing_by_Product', '05_Pricing_by_Product'[Margin_Pct] * '05_Pricing_by_Product'[Volume_MT]),\n"
-            "    SUM('05_Pricing_by_Product'[Volume_MT])\n"
-            ")",
-        ),
-        ("Total Condition Spending", "SUM('06_Condition_Spending_Monthly'[Actual_M_EUR])"),
-        ("Total Condition LY", "SUM('06_Condition_Spending_Monthly'[LastYear_M_EUR])"),
-        ("Condition Change vs LY Pct", "DIVIDE([Total Condition Spending] - [Total Condition LY], [Total Condition LY])"),
-        ("Total Condition Actual", "SUM('07_Condition_Breakdown'[Actual_M_EUR])"),
-        ("Total Condition Budget", "SUM('07_Condition_Breakdown'[Budget_M_EUR])"),
-        ("Total Condition Variance Pct", "DIVIDE([Total Condition Actual] - [Total Condition Budget], [Total Condition Budget])"),
-        (
-            "Variance Color",
-            'IF(SELECTEDVALUE(\'07_Condition_Breakdown\'[Variance_Pct]) > 0, "#c43e3e", "#1a8754")',
-        ),
-        # Operations
-        ("Total Actual Volume", "SUM('09_Volume_Monthly'[Actual_MT])"),
-        ("Total Forecast Volume", "SUM('09_Volume_Monthly'[Forecast_MT])"),
-        ("Forecast Fulfillment Pct", "DIVIDE([Total Actual Volume], [Total Forecast Volume])"),
-        ("Total Actual Cost", "SUM('10_Cost_by_Category'[Actual_M_EUR])"),
-        ("Total Budget Cost", "SUM('10_Cost_by_Category'[Budget_M_EUR])"),
-        ("Cost Variance", "[Total Actual Cost] - [Total Budget Cost]"),
-        ("Cost Variance Pct", "DIVIDE([Cost Variance], [Total Budget Cost])"),
-        (
-            "Site Status Color",
-            'SWITCH(SELECTEDVALUE(\'17_Production_Sites\'[Status]),\n'
-            '    "on-track", "#1a8754", "attention", "#d49a1a", "critical", "#c43e3e", "#667885")',
-        ),
-        (
-            "Utilization Color",
-            'VAR Util = SELECTEDVALUE(\'17_Production_Sites\'[Utilization_Pct])\n'
-            'RETURN IF(Util >= 85, "#1a8754", IF(Util >= 75, "#d49a1a", "#c43e3e"))',
-        ),
-        # Pricing Deep-Dive
-        ("Gross Revenue", "CALCULATE(SUM('08_Net_Revenue_Waterfall'[Value_M_EUR]), '08_Net_Revenue_Waterfall'[Type] = \"start\")"),
-        ("Net Revenue", "CALCULATE(SUM('08_Net_Revenue_Waterfall'[Value_M_EUR]), '08_Net_Revenue_Waterfall'[Type] = \"end\")"),
-        ("Total Conditions M EUR", "[Gross Revenue] - [Net Revenue]"),
-        ("Condition Ratio Pct", "DIVIDE([Total Conditions M EUR], [Gross Revenue])"),
-        ("Net Gross Ratio Pct", "DIVIDE([Net Revenue], [Gross Revenue])"),
-        # Cost Deep-Dive
-        (
-            "Cost Variance Badge Color",
-            'VAR VarPct = SELECTEDVALUE(\'10_Cost_by_Category\'[Variance_Pct])\n'
-            'RETURN IF(VarPct > 2, "#c43e3e", IF(VarPct > 0, "#d49a1a", "#1a8754"))',
-        ),
-    ]
-}
+DAX_MEASURES = [
+    # Color constants
+    ("_Color_Primary", '"#173B7A"'),
+    ("_Color_Positive", '"#1a8754"'),
+    ("_Color_Negative", '"#c43e3e"'),
+    ("_Color_Warning", '"#d49a1a"'),
+    ("_Color_Grey", '"#667885"'),
+    ("_Color_LightGrey", '"#b8c2cf"'),
+    # Hero KPIs
+    ("Actual SCO/MT", 'LOOKUPVALUE(\'01_TopKPIs\'[Value], \'01_TopKPIs\'[KPI_ID], "actual-sco")'),
+    ("Delta vs LY", 'LOOKUPVALUE(\'01_TopKPIs\'[Value], \'01_TopKPIs\'[KPI_ID], "vs-ly")'),
+    ("Delta vs PL", 'LOOKUPVALUE(\'01_TopKPIs\'[Value], \'01_TopKPIs\'[KPI_ID], "vs-pl")'),
+    ("Delta vs Target", 'LOOKUPVALUE(\'01_TopKPIs\'[Value], \'01_TopKPIs\'[KPI_ID], "vs-target")'),
+    ("Volume Forecast Fulfillment", 'LOOKUPVALUE(\'01_TopKPIs\'[Value], \'01_TopKPIs\'[KPI_ID], "volume-forecast")'),
+    ("Market Price Index", 'LOOKUPVALUE(\'01_TopKPIs\'[Value], \'01_TopKPIs\'[KPI_ID], "market-price-index")'),
+    ("Position Valuation", 'LOOKUPVALUE(\'01_TopKPIs\'[Value], \'01_TopKPIs\'[KPI_ID], "position-valuation")'),
+    ("Revenue Leakage", 'LOOKUPVALUE(\'01_TopKPIs\'[Value], \'01_TopKPIs\'[KPI_ID], "revenue-leakage")'),
+    ("Total SCO All Products", "SUM('04_Product_SCO_Contribution'[Total_SCO_M_EUR])"),
+    ("Waterfall Display Value", "SUM('03_SCO_Waterfall'[Value_EUR_MT])"),
+    # Market Intelligence
+    ("Latest Gas Price", "CALCULATE(MAX('14_Input_Costs'[Natural_Gas_EUR_MWh]), LASTDATE('14_Input_Costs'[Month]))"),
+    ("Latest EUR USD", "CALCULATE(MAX('15_FX_Rates'[EUR_USD]), LASTDATE('15_FX_Rates'[Month]))"),
+    ("Latest Freight Index", "CALCULATE(MAX('14_Input_Costs'[Freight_Index]), LASTDATE('14_Input_Costs'[Month]))"),
+    # Customer Portfolio
+    ("Customers Above Target", "COUNTROWS(FILTER('11_Customer_Portfolio', '11_Customer_Portfolio'[Price_EUR_MT] >= 310))"),
+    ("Customers Below Limit", "COUNTROWS(FILTER('11_Customer_Portfolio', '11_Customer_Portfolio'[Price_EUR_MT] < 260))"),
+    ("Avg Portfolio Price", "AVERAGE('11_Customer_Portfolio'[Price_EUR_MT])"),
+    ("Total Active Customers", "COUNTROWS('11_Customer_Portfolio')"),
+    # Pricing
+    ("Total Condition Spending", "SUM('06_Condition_Spending_Monthly'[Actual_M_EUR])"),
+    ("Total Condition LY", "SUM('06_Condition_Spending_Monthly'[LastYear_M_EUR])"),
+    # Operations
+    ("Total Actual Volume", "SUM('09_Volume_Monthly'[Actual_MT])"),
+    ("Total Forecast Volume", "SUM('09_Volume_Monthly'[Forecast_MT])"),
+    ("Forecast Fulfillment Pct", "DIVIDE(SUM('09_Volume_Monthly'[Actual_MT]), SUM('09_Volume_Monthly'[Forecast_MT]))"),
+    ("Total Actual Cost", "SUM('10_Cost_by_Category'[Actual_M_EUR])"),
+    ("Total Budget Cost", "SUM('10_Cost_by_Category'[Budget_M_EUR])"),
+    # Pricing Deep-Dive
+    ("Gross Revenue", "CALCULATE(SUM('08_Net_Revenue_Waterfall'[Value_M_EUR]), '08_Net_Revenue_Waterfall'[Type] = \"start\")"),
+    ("Net Revenue", "CALCULATE(SUM('08_Net_Revenue_Waterfall'[Value_M_EUR]), '08_Net_Revenue_Waterfall'[Type] = \"end\")"),
+]
 
 
 # ---------------------------------------------------------------------------
@@ -331,22 +212,18 @@ MEASURES = {
 def build_data_model():
     tables = []
 
-    # -- Data tables from CSVs --
     for table_name, csv_file in TABLE_CSV_MAP.items():
         headers, rows = read_csv_file(csv_file)
         m_types = infer_m_types(headers, rows)
         m_expr = build_m_expression(headers, rows, m_types)
 
         columns = []
-        for i, (h, mt) in enumerate(zip(headers, m_types)):
-            col = {
+        for h, mt in zip(headers, m_types):
+            columns.append({
                 "name": h,
                 "dataType": tom_datatype(mt),
                 "sourceColumn": h,
-            }
-            if i == 0:
-                col["isNameColumn"] = True
-            columns.append(col)
+            })
 
         table_def = {
             "name": table_name,
@@ -357,7 +234,7 @@ def build_data_model():
                     "mode": "import",
                     "source": {
                         "type": "m",
-                        "expression": m_expr.split("\n"),
+                        "expression": m_expr,
                     },
                 }
             ],
@@ -375,7 +252,16 @@ def build_data_model():
 
         tables.append(table_def)
 
-    # -- Measures table --
+    # Measures table
+    measures_list = []
+    for name, expression in DAX_MEASURES:
+        m = {"name": name, "expression": expression}
+        if "Pct" in name or "Ratio" in name:
+            m["formatString"] = "0.0%"
+        elif "EUR" in name or "Cost" in name or "Revenue" in name or "Price" in name:
+            m["formatString"] = "#,##0.0"
+        measures_list.append(m)
+
     measures_table = {
         "name": "_Measures",
         "columns": [
@@ -386,7 +272,7 @@ def build_data_model():
                 "sourceColumn": "_MeasureGroup",
             }
         ],
-        "measures": [],
+        "measures": measures_list,
         "partitions": [
             {
                 "name": "Partition",
@@ -394,34 +280,21 @@ def build_data_model():
                 "source": {
                     "type": "m",
                     "expression": [
-                        'let',
+                        "let",
                         '    Source = #table(type table [_MeasureGroup = text], {{"All"}})',
-                        'in',
-                        '    Source',
+                        "in",
+                        "    Source",
                     ],
                 },
             }
         ],
         "isHidden": True,
     }
-
-    for name, expression in MEASURES["_Measures"]:
-        measure = {
-            "name": name,
-            "expression": expression.split("\n") if "\n" in expression else expression,
-        }
-        # Set format strings
-        if "Pct" in name or "Ratio" in name or "Share" in name or "Fulfillment" in name:
-            measure["formatString"] = "0.0%"
-        elif "EUR" in name or "Cost" in name or "Revenue" in name or "SCO" in name or "Price" in name or "Valuation" in name or "Leakage" in name or "Spending" in name:
-            measure["formatString"] = "#,##0.0"
-        measures_table["measures"].append(measure)
-
     tables.append(measures_table)
 
-    model = {
-        "name": "KS_AgriMetrics",
-        "compatibilityLevel": 1567,
+    return {
+        "name": "SemanticModel",
+        "compatibilityLevel": 1550,
         "model": {
             "culture": "en-US",
             "tables": tables,
@@ -438,640 +311,345 @@ def build_data_model():
         },
     }
 
-    return model
-
 
 # ---------------------------------------------------------------------------
 # Build Report Layout
 # ---------------------------------------------------------------------------
 
-PAGE_DEFS = [
-    {
-        "displayName": "Dashboard",
-        "ordinal": 0,
-        "visuals": [
-            {"type": "card", "x": 30, "y": 20, "w": 280, "h": 160,
-             "title": "Actual SCO/MT", "measure": "Actual SCO/MT"},
-            {"type": "card", "x": 340, "y": 20, "w": 200, "h": 160,
-             "title": "Δ vs Last Year", "measure": "Delta vs LY"},
-            {"type": "card", "x": 570, "y": 20, "w": 200, "h": 160,
-             "title": "Δ vs Plan", "measure": "Delta vs PL"},
-            {"type": "card", "x": 800, "y": 20, "w": 200, "h": 160,
-             "title": "Δ vs Target", "measure": "Delta vs Target"},
-            {"type": "card", "x": 30, "y": 200, "w": 240, "h": 130,
-             "title": "Volume Forecast Fulfillment", "measure": "Volume Forecast Fulfillment"},
-            {"type": "card", "x": 300, "y": 200, "w": 240, "h": 130,
-             "title": "Market Price Index", "measure": "Market Price Index"},
-            {"type": "card", "x": 570, "y": 200, "w": 240, "h": 130,
-             "title": "Position Valuation", "measure": "Position Valuation"},
-            {"type": "card", "x": 840, "y": 200, "w": 240, "h": 130,
-             "title": "Revenue Leakage", "measure": "Revenue Leakage"},
-            {"type": "lineChart", "x": 30, "y": 350, "w": 1050, "h": 300,
-             "title": "SCO/MT — 12 Month Trend",
-             "table": "02_SCO_Trend",
-             "category": "Month",
-             "values": ["Actual_EUR_MT", "Plan_EUR_MT"]},
-            {"type": "table", "x": 30, "y": 670, "w": 1050, "h": 280,
-             "title": "Product SCO Contribution",
-             "table": "04_Product_SCO_Contribution",
-             "columns": ["Product", "SCO_per_MT_EUR", "Volume_MT", "Total_SCO_M_EUR", "Share_of_Total_Pct", "vs_LY_Pct"]},
-        ],
-    },
-    {
-        "displayName": "SCO Bridge",
-        "ordinal": 1,
-        "visuals": [
-            {"type": "waterfallChart", "x": 30, "y": 20, "w": 1050, "h": 400,
-             "title": "SCO Bridge — Year-over-Year Decomposition",
-             "table": "03_SCO_Waterfall",
-             "category": "Effect_Name",
-             "values": ["Value_EUR_MT"]},
-            {"type": "table", "x": 30, "y": 440, "w": 1050, "h": 280,
-             "title": "Effect Detail",
-             "table": "03_SCO_Waterfall",
-             "columns": ["Effect_Name", "Value_EUR_MT", "Type", "Category"]},
-        ],
-    },
-    {
-        "displayName": "Market Intelligence",
-        "ordinal": 2,
-        "visuals": [
-            {"type": "card", "x": 30, "y": 20, "w": 240, "h": 130,
-             "title": "K+S Premium vs Spot", "measure": "KS Premium Pct"},
-            {"type": "card", "x": 300, "y": 20, "w": 240, "h": 130,
-             "title": "Gas Price (EUR/MWh)", "measure": "Latest Gas Price"},
-            {"type": "card", "x": 570, "y": 20, "w": 240, "h": 130,
-             "title": "EUR/USD Rate", "measure": "Latest EUR USD"},
-            {"type": "card", "x": 840, "y": 20, "w": 240, "h": 130,
-             "title": "Freight Index", "measure": "Latest Freight Index"},
-            {"type": "lineChart", "x": 30, "y": 170, "w": 1050, "h": 300,
-             "title": "Potash Price Benchmarks",
-             "table": "13_Benchmark_Prices",
-             "category": "Month",
-             "values": ["MOP_Vancouver_FOB_EUR", "MOP_Baltic_EUR", "MOP_Brazil_CFR_EUR", "KS_Realized_Price_EUR"]},
-            {"type": "lineChart", "x": 30, "y": 490, "w": 510, "h": 250,
-             "title": "Input Cost Tracker",
-             "table": "14_Input_Costs",
-             "category": "Month",
-             "values": ["Natural_Gas_EUR_MWh", "Electricity_EUR_MWh"]},
-            {"type": "lineChart", "x": 570, "y": 490, "w": 510, "h": 250,
-             "title": "FX Impact",
-             "table": "15_FX_Rates",
-             "category": "Month",
-             "values": ["EUR_USD", "EUR_BRL"]},
-            {"type": "table", "x": 30, "y": 760, "w": 1050, "h": 200,
-             "title": "Competitor Capacity",
-             "table": "16_Competitor_Landscape",
-             "columns": ["Producer", "Region", "Capacity_MT_yr", "Status", "Price_Impact", "KS_Implication"]},
-        ],
-    },
-    {
-        "displayName": "Customer Portfolio",
-        "ordinal": 3,
-        "visuals": [
-            {"type": "card", "x": 30, "y": 20, "w": 190, "h": 120,
-             "title": "Total Customers", "measure": "Total Active Customers"},
-            {"type": "card", "x": 250, "y": 20, "w": 190, "h": 120,
-             "title": "Avg. Price", "measure": "Avg Portfolio Price"},
-            {"type": "card", "x": 470, "y": 20, "w": 190, "h": 120,
-             "title": "Above Target", "measure": "Customers Above Target"},
-            {"type": "card", "x": 690, "y": 20, "w": 190, "h": 120,
-             "title": "In Corridor", "measure": "Customers In Corridor"},
-            {"type": "card", "x": 910, "y": 20, "w": 190, "h": 120,
-             "title": "Below Limit", "measure": "Customers Below Limit"},
-            {"type": "scatterChart", "x": 30, "y": 160, "w": 510, "h": 350,
-             "title": "Volume vs. Price Corridor",
-             "table": "11_Customer_Portfolio",
-             "xCol": "Volume_MT",
-             "yCol": "Price_EUR_MT",
-             "category": "Customer"},
-            {"type": "scatterChart", "x": 570, "y": 160, "w": 510, "h": 350,
-             "title": "Volume vs. Margin Corridor",
-             "table": "11_Customer_Portfolio",
-             "xCol": "Volume_MT",
-             "yCol": "Margin_Pct",
-             "category": "Customer"},
-            {"type": "table", "x": 30, "y": 530, "w": 1050, "h": 400,
-             "title": "Customer Detail",
-             "table": "11_Customer_Portfolio",
-             "columns": ["Customer", "Archetype", "Segment", "Volume_MT", "Price_EUR_MT", "Margin_Pct", "Trend"]},
-        ],
-    },
-    {
-        "displayName": "Pricing & Conditions",
-        "ordinal": 4,
-        "visuals": [
-            {"type": "card", "x": 30, "y": 20, "w": 240, "h": 130,
-             "title": "Avg Price / MT", "measure": "Avg Price Per MT"},
-            {"type": "card", "x": 300, "y": 20, "w": 240, "h": 130,
-             "title": "Avg Margin %", "measure": "Avg Margin Pct"},
-            {"type": "card", "x": 570, "y": 20, "w": 240, "h": 130,
-             "title": "Total Condition Spending", "measure": "Total Condition Spending"},
-            {"type": "card", "x": 840, "y": 20, "w": 240, "h": 130,
-             "title": "Change vs LY", "measure": "Condition Change vs LY Pct"},
-            {"type": "table", "x": 30, "y": 170, "w": 1050, "h": 250,
-             "title": "Product Category Pricing Analysis",
-             "table": "05_Pricing_by_Product",
-             "columns": ["Product", "Avg_Price_EUR_MT", "Price_vs_LY_Pct", "Margin_Pct", "Margin_vs_LY_pp", "Volume_MT"]},
-            {"type": "clusteredBarChart", "x": 30, "y": 440, "w": 510, "h": 300,
-             "title": "Monthly Condition Spending",
-             "table": "06_Condition_Spending_Monthly",
-             "category": "Month",
-             "values": ["Actual_M_EUR", "LastYear_M_EUR"]},
-            {"type": "table", "x": 570, "y": 440, "w": 510, "h": 300,
-             "title": "Condition Spending by Type",
-             "table": "07_Condition_Breakdown",
-             "columns": ["Condition_Type", "Actual_M_EUR", "Budget_M_EUR", "Variance_Pct", "Share_of_Revenue_Pct"]},
-        ],
-    },
-    {
-        "displayName": "Operations",
-        "ordinal": 5,
-        "visuals": [
-            {"type": "card", "x": 30, "y": 20, "w": 240, "h": 130,
-             "title": "Total Volume", "measure": "Total Actual Volume"},
-            {"type": "card", "x": 300, "y": 20, "w": 240, "h": 130,
-             "title": "Forecast Fulfillment", "measure": "Forecast Fulfillment Pct"},
-            {"type": "card", "x": 570, "y": 20, "w": 240, "h": 130,
-             "title": "Total Cost", "measure": "Total Actual Cost"},
-            {"type": "card", "x": 840, "y": 20, "w": 240, "h": 130,
-             "title": "Cost Variance vs Budget", "measure": "Cost Variance Pct"},
-            {"type": "lineChart", "x": 30, "y": 170, "w": 510, "h": 300,
-             "title": "Monthly Volume Trend",
-             "table": "09_Volume_Monthly",
-             "category": "Month",
-             "values": ["Actual_MT", "Forecast_MT", "LastYear_MT"]},
-            {"type": "clusteredBarChart", "x": 570, "y": 170, "w": 510, "h": 300,
-             "title": "Cost by Category",
-             "table": "10_Cost_by_Category",
-             "category": "Category",
-             "values": ["Actual_M_EUR", "Budget_M_EUR"]},
-            {"type": "table", "x": 30, "y": 490, "w": 1050, "h": 250,
-             "title": "Production Site Performance",
-             "table": "17_Production_Sites",
-             "columns": ["Site", "Location", "Product", "Utilization_Pct", "Output_MT", "Cost_per_MT_EUR", "Cost_vs_Budget_Pct", "Status"]},
-            {"type": "table", "x": 30, "y": 760, "w": 1050, "h": 200,
-             "title": "Cost Variance Detail",
-             "table": "10_Cost_by_Category",
-             "columns": ["Category", "Actual_M_EUR", "Budget_M_EUR", "Variance_M_EUR", "Variance_Pct"]},
-        ],
-    },
-    {
-        "displayName": "Pricing Deep-Dive",
-        "ordinal": 6,
-        "visuals": [
-            {"type": "card", "x": 30, "y": 20, "w": 310, "h": 130,
-             "title": "Avg. Price / MT", "measure": "Avg Price Per MT"},
-            {"type": "card", "x": 370, "y": 20, "w": 310, "h": 130,
-             "title": "Avg. Margin", "measure": "Avg Margin Pct"},
-            {"type": "card", "x": 710, "y": 20, "w": 310, "h": 130,
-             "title": "Total Volume", "measure": "Total Actual Volume"},
-            {"type": "waterfallChart", "x": 30, "y": 170, "w": 1050, "h": 350,
-             "title": "Net Revenue Waterfall — Gross to Net",
-             "table": "08_Net_Revenue_Waterfall",
-             "category": "Step_Name",
-             "values": ["Value_M_EUR"]},
-            {"type": "table", "x": 30, "y": 540, "w": 1050, "h": 250,
-             "title": "Product Category Pricing Analysis",
-             "table": "05_Pricing_by_Product",
-             "columns": ["Product", "Avg_Price_EUR_MT", "Price_vs_LY_Pct", "Margin_Pct", "Margin_vs_LY_pp", "Volume_MT"]},
-        ],
-    },
-    {
-        "displayName": "Cost Deep-Dive",
-        "ordinal": 7,
-        "visuals": [
-            {"type": "card", "x": 30, "y": 20, "w": 310, "h": 130,
-             "title": "Total Actual Cost", "measure": "Total Actual Cost"},
-            {"type": "card", "x": 370, "y": 20, "w": 310, "h": 130,
-             "title": "Total Budget", "measure": "Total Budget Cost"},
-            {"type": "card", "x": 710, "y": 20, "w": 310, "h": 130,
-             "title": "Variance vs Budget", "measure": "Cost Variance Pct"},
-            {"type": "clusteredBarChart", "x": 30, "y": 170, "w": 1050, "h": 300,
-             "title": "Cost by Category — Actual vs Budget",
-             "table": "10_Cost_by_Category",
-             "category": "Category",
-             "values": ["Actual_M_EUR", "Budget_M_EUR"]},
-            {"type": "table", "x": 30, "y": 490, "w": 1050, "h": 280,
-             "title": "Variance Detail",
-             "table": "10_Cost_by_Category",
-             "columns": ["Category", "Actual_M_EUR", "Budget_M_EUR", "Variance_M_EUR", "Variance_Pct"]},
-        ],
-    },
-    {
-        "displayName": "Price Alerts",
-        "ordinal": 8,
-        "visuals": [
-            {"type": "table", "x": 30, "y": 20, "w": 1050, "h": 400,
-             "title": "Active Price Alerts",
-             "table": "12_Price_Alerts",
-             "columns": ["Customer", "Product", "Actual_Price_EUR", "Limit_Price_EUR", "Deviation_Pct", "Severity", "Timestamp"]},
-            {"type": "table", "x": 30, "y": 440, "w": 1050, "h": 300,
-             "title": "Market Signals",
-             "table": "18_Market_Signals",
-             "columns": ["Title", "Description", "Impact"]},
-        ],
-    },
-    {
-        "displayName": "Data Sources",
-        "ordinal": 9,
-        "visuals": [
-            {"type": "textbox", "x": 30, "y": 20, "w": 1050, "h": 100,
-             "text": "Data Connections & Source Health\n\nThis page provides an overview of all data sources connected to the K+S AgriMetrics dashboard. In production, SAP S/4HANA, SAP BW/4HANA, Argus FMB, CRM, Mine Production System, and Excel uploads feed real-time data into this dashboard."},
-            {"type": "table", "x": 30, "y": 140, "w": 1050, "h": 250,
-             "title": "Corridor Thresholds",
-             "table": "19_Corridor_Thresholds",
-             "columns": ["Metric", "Target", "Limit"]},
-            {"type": "table", "x": 30, "y": 410, "w": 1050, "h": 300,
-             "title": "Available Filter Options",
-             "table": "20_Filter_Options",
-             "columns": ["Filter_Type", "Option_Value", "Sort_Order"]},
-        ],
-    },
-]
-
-
-def make_visual_config(visual_def, idx):
-    """Create the config JSON for a visual container."""
-    v = visual_def
+def make_visual(vtype, x, y, w, h, title, table=None, category=None,
+                values=None, columns=None, measure=None,
+                x_col=None, y_col=None, text=None):
+    """Create a visual container dict."""
     name = uid()
-
     config = {
         "name": name,
-        "layouts": [
-            {
-                "id": 0,
-                "position": {
-                    "x": v["x"],
-                    "y": v["y"],
-                    "z": idx,
-                    "width": v["w"],
-                    "height": v["h"],
-                    "tabOrder": idx,
-                },
-            }
-        ],
+        "layouts": [{
+            "id": 0,
+            "position": {"x": x, "y": y, "z": 0, "width": w, "height": h, "tabOrder": 0},
+        }],
     }
 
-    vtype = v["type"]
+    title_obj = {
+        "title": [{
+            "properties": {
+                "show": {"expr": {"Literal": {"Value": "true"}}},
+                "text": {"expr": {"Literal": {"Value": f"'{title}'"}}},
+            }
+        }]
+    }
 
     if vtype == "textbox":
         config["singleVisual"] = {
             "visualType": "textbox",
             "objects": {
-                "general": [
-                    {
-                        "properties": {
-                            "paragraphs": [
-                                {
-                                    "textRuns": [
-                                        {
-                                            "value": v["text"],
-                                            "textStyle": {
-                                                "fontFamily": "Inter, Segoe UI, sans-serif",
-                                                "fontSize": "12px",
-                                            },
-                                        }
-                                    ],
-                                }
-                            ]
-                        }
+                "general": [{
+                    "properties": {
+                        "paragraphs": [{
+                            "textRuns": [{"value": text or title, "textStyle": {"fontSize": "14px"}}]
+                        }]
                     }
-                ]
+                }]
             },
         }
-        return config
-
-    if vtype == "card":
+    elif vtype == "card":
         config["singleVisual"] = {
             "visualType": "card",
-            "projections": {"Values": [{"queryRef": f"_Measures.{v['measure']}"}]},
+            "projections": {"Values": [{"queryRef": f"_Measures.{measure}"}]},
             "prototypeQuery": {
                 "Version": 2,
                 "From": [{"Name": "m", "Entity": "_Measures", "Type": 0}],
-                "Select": [
-                    {
-                        "Measure": {
-                            "Expression": {"SourceRef": {"Source": "m"}},
-                            "Property": v["measure"],
-                        },
-                        "Name": f"_Measures.{v['measure']}",
-                    }
-                ],
-            },
-            "objects": {
-                "labels": [
-                    {
-                        "properties": {
-                            "fontSize": {"expr": {"Literal": {"Value": "28D"}}},
-                            "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#1a2332'"}}}}},
-                            "fontFamily": {"expr": {"Literal": {"Value": "'Inter, Segoe UI, sans-serif'"}}},
-                        }
-                    }
-                ],
-                "categoryLabels": [
-                    {
-                        "properties": {
-                            "show": {"expr": {"Literal": {"Value": "true"}}},
-                            "fontSize": {"expr": {"Literal": {"Value": "11D"}}},
-                            "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#4a5568'"}}}}},
-                        }
-                    }
-                ],
-            },
-            "vcObjects": {
-                "title": [
-                    {
-                        "properties": {
-                            "show": {"expr": {"Literal": {"Value": "true"}}},
-                            "text": {"expr": {"Literal": {"Value": f"'{v['title']}'"}}},
-                            "fontSize": {"expr": {"Literal": {"Value": "11D"}}},
-                            "fontColor": {"solid": {"color": {"expr": {"Literal": {"Value": "'#667885'"}}}}},
-                        }
-                    }
-                ],
-            },
-        }
-        return config
-
-    if vtype in ("lineChart", "clusteredBarChart", "waterfallChart"):
-        table = v["table"]
-        alias = table[0].lower()
-        category_col = v["category"]
-        value_cols = v["values"]
-
-        froms = [{"Name": alias, "Entity": table, "Type": 0}]
-        selects = [
-            {
-                "Column": {
-                    "Expression": {"SourceRef": {"Source": alias}},
-                    "Property": category_col,
-                },
-                "Name": f"{table}.{category_col}",
-            }
-        ]
-        value_projections = []
-        for vc in value_cols:
-            selects.append(
-                {
-                    "Aggregation": {
-                        "Expression": {
-                            "Column": {
-                                "Expression": {"SourceRef": {"Source": alias}},
-                                "Property": vc,
-                            }
-                        },
-                        "Function": 0,  # Sum
+                "Select": [{
+                    "Measure": {
+                        "Expression": {"SourceRef": {"Source": "m"}},
+                        "Property": measure,
                     },
-                    "Name": f"Sum({table}.{vc})",
-                }
-            )
-            value_projections.append({"queryRef": f"Sum({table}.{vc})"})
-
+                    "Name": f"_Measures.{measure}",
+                }],
+            },
+            "vcObjects": title_obj,
+        }
+    elif vtype in ("lineChart", "clusteredBarChart", "waterfallChart"):
+        alias = "t"
+        selects = [{
+            "Column": {
+                "Expression": {"SourceRef": {"Source": alias}},
+                "Property": category,
+            },
+            "Name": f"{table}.{category}",
+        }]
+        y_proj = []
+        for vc in (values or []):
+            selects.append({
+                "Aggregation": {
+                    "Expression": {
+                        "Column": {
+                            "Expression": {"SourceRef": {"Source": alias}},
+                            "Property": vc,
+                        }
+                    },
+                    "Function": 0,
+                },
+                "Name": f"Sum({table}.{vc})",
+            })
+            y_proj.append({"queryRef": f"Sum({table}.{vc})"})
         config["singleVisual"] = {
             "visualType": vtype,
             "projections": {
-                "Category": [{"queryRef": f"{table}.{category_col}"}],
-                "Y": value_projections,
+                "Category": [{"queryRef": f"{table}.{category}"}],
+                "Y": y_proj,
             },
             "prototypeQuery": {
                 "Version": 2,
-                "From": froms,
+                "From": [{"Name": alias, "Entity": table, "Type": 0}],
                 "Select": selects,
-                "OrderBy": [
-                    {
-                        "Direction": 1,
-                        "Expression": {
-                            "Column": {
-                                "Expression": {"SourceRef": {"Source": alias}},
-                                "Property": category_col,
-                            }
-                        },
-                    }
-                ],
             },
-            "vcObjects": {
-                "title": [
-                    {
-                        "properties": {
-                            "show": {"expr": {"Literal": {"Value": "true"}}},
-                            "text": {"expr": {"Literal": {"Value": f"'{v['title']}'"}}},
-                            "fontSize": {"expr": {"Literal": {"Value": "13D"}}},
-                            "fontColor": {"solid": {"color": {"expr": {"Literal": {"Value": "'#4a5568'"}}}}},
-                        }
-                    }
-                ],
-            },
+            "vcObjects": title_obj,
         }
-        return config
-
-    if vtype == "scatterChart":
-        table = v["table"]
-        alias = table[0].lower()
+    elif vtype == "scatterChart":
+        alias = "t"
         config["singleVisual"] = {
             "visualType": "scatterChart",
             "projections": {
-                "X": [{"queryRef": f"Sum({table}.{v['xCol']})"}],
-                "Y": [{"queryRef": f"Sum({table}.{v['yCol']})"}],
-                "Category": [{"queryRef": f"{table}.{v['category']}"}],
+                "X": [{"queryRef": f"Sum({table}.{x_col})"}],
+                "Y": [{"queryRef": f"Sum({table}.{y_col})"}],
+                "Category": [{"queryRef": f"{table}.{category}"}],
             },
             "prototypeQuery": {
                 "Version": 2,
                 "From": [{"Name": alias, "Entity": table, "Type": 0}],
                 "Select": [
-                    {
-                        "Column": {
-                            "Expression": {"SourceRef": {"Source": alias}},
-                            "Property": v["category"],
-                        },
-                        "Name": f"{table}.{v['category']}",
-                    },
-                    {
-                        "Aggregation": {
-                            "Expression": {
-                                "Column": {
-                                    "Expression": {"SourceRef": {"Source": alias}},
-                                    "Property": v["xCol"],
-                                }
-                            },
-                            "Function": 0,
-                        },
-                        "Name": f"Sum({table}.{v['xCol']})",
-                    },
-                    {
-                        "Aggregation": {
-                            "Expression": {
-                                "Column": {
-                                    "Expression": {"SourceRef": {"Source": alias}},
-                                    "Property": v["yCol"],
-                                }
-                            },
-                            "Function": 0,
-                        },
-                        "Name": f"Sum({table}.{v['yCol']})",
-                    },
+                    {"Column": {"Expression": {"SourceRef": {"Source": alias}}, "Property": category}, "Name": f"{table}.{category}"},
+                    {"Aggregation": {"Expression": {"Column": {"Expression": {"SourceRef": {"Source": alias}}, "Property": x_col}}, "Function": 0}, "Name": f"Sum({table}.{x_col})"},
+                    {"Aggregation": {"Expression": {"Column": {"Expression": {"SourceRef": {"Source": alias}}, "Property": y_col}}, "Function": 0}, "Name": f"Sum({table}.{y_col})"},
                 ],
             },
-            "vcObjects": {
-                "title": [
-                    {
-                        "properties": {
-                            "show": {"expr": {"Literal": {"Value": "true"}}},
-                            "text": {"expr": {"Literal": {"Value": f"'{v['title']}'"}}},
-                            "fontSize": {"expr": {"Literal": {"Value": "13D"}}},
-                            "fontColor": {"solid": {"color": {"expr": {"Literal": {"Value": "'#4a5568'"}}}}},
-                        }
-                    }
-                ],
-            },
+            "vcObjects": title_obj,
         }
-        return config
-
-    if vtype == "table":
-        table = v["table"]
-        alias = table[0].lower()
-        cols = v["columns"]
-        froms = [{"Name": alias, "Entity": table, "Type": 0}]
+    elif vtype == "tableEx":
+        alias = "t"
         selects = []
-        projections = []
-        for c in cols:
-            selects.append(
-                {
-                    "Column": {
-                        "Expression": {"SourceRef": {"Source": alias}},
-                        "Property": c,
-                    },
-                    "Name": f"{table}.{c}",
-                }
-            )
-            projections.append({"queryRef": f"{table}.{c}"})
-
+        proj = []
+        for c in (columns or []):
+            selects.append({
+                "Column": {"Expression": {"SourceRef": {"Source": alias}}, "Property": c},
+                "Name": f"{table}.{c}",
+            })
+            proj.append({"queryRef": f"{table}.{c}"})
         config["singleVisual"] = {
             "visualType": "tableEx",
-            "projections": {"Values": projections},
+            "projections": {"Values": proj},
             "prototypeQuery": {
                 "Version": 2,
-                "From": froms,
+                "From": [{"Name": alias, "Entity": table, "Type": 0}],
                 "Select": selects,
             },
-            "vcObjects": {
-                "title": [
-                    {
-                        "properties": {
-                            "show": {"expr": {"Literal": {"Value": "true"}}},
-                            "text": {"expr": {"Literal": {"Value": f"'{v['title']}'"}}},
-                            "fontSize": {"expr": {"Literal": {"Value": "13D"}}},
-                            "fontColor": {"solid": {"color": {"expr": {"Literal": {"Value": "'#4a5568'"}}}}},
-                        }
-                    }
-                ],
-            },
+            "vcObjects": title_obj,
         }
-        return config
 
-    # Fallback — textbox
-    config["singleVisual"] = {"visualType": "textbox"}
-    return config
+    return {
+        "x": x, "y": y, "z": 0, "width": w, "height": h,
+        "config": json.dumps(config),
+        "filters": "[]",
+    }
 
 
 def build_report_layout():
-    report_id = uid()
+    """Build the complete Report/Layout JSON."""
+    FW = 1220  # Full width (page 1280 - margins)
+
+    pages = [
+        # Page 1: Dashboard
+        {
+            "name": "Dashboard",
+            "visuals": [
+                make_visual("card", 30, 20, 280, 160, "Actual SCO/MT", measure="Actual SCO/MT"),
+                make_visual("card", 340, 20, 200, 160, "vs Last Year", measure="Delta vs LY"),
+                make_visual("card", 570, 20, 200, 160, "vs Plan", measure="Delta vs PL"),
+                make_visual("card", 800, 20, 200, 160, "vs Target", measure="Delta vs Target"),
+                make_visual("lineChart", 30, 200, FW, 300, "SCO/MT — 12 Month Trend",
+                            table="02_SCO_Trend", category="Month",
+                            values=["Actual_EUR_MT", "Plan_EUR_MT"]),
+                make_visual("tableEx", 30, 520, FW, 280, "Product SCO Contribution",
+                            table="04_Product_SCO_Contribution",
+                            columns=["Product", "SCO_per_MT_EUR", "Volume_MT", "Total_SCO_M_EUR", "Share_of_Total_Pct", "vs_LY_Pct"]),
+            ],
+        },
+        # Page 2: SCO Bridge
+        {
+            "name": "SCO Bridge",
+            "visuals": [
+                make_visual("clusteredBarChart", 30, 20, FW, 380, "SCO Waterfall (EUR/MT)",
+                            table="03_SCO_Waterfall", category="Effect_Name",
+                            values=["Value_EUR_MT"]),
+                make_visual("tableEx", 30, 420, FW, 280, "Effect Details",
+                            table="03_SCO_Waterfall",
+                            columns=["Effect_Name", "Value_EUR_MT", "Type", "Category"]),
+            ],
+        },
+        # Page 3: Market Intelligence
+        {
+            "name": "Market Intelligence",
+            "visuals": [
+                make_visual("card", 30, 20, 280, 130, "Gas Price", measure="Latest Gas Price"),
+                make_visual("card", 340, 20, 280, 130, "EUR/USD", measure="Latest EUR USD"),
+                make_visual("card", 650, 20, 280, 130, "Freight Index", measure="Latest Freight Index"),
+                make_visual("lineChart", 30, 170, FW, 300, "Potash Price Benchmarks",
+                            table="13_Benchmark_Prices", category="Month",
+                            values=["MOP_Vancouver_FOB_EUR", "MOP_Baltic_EUR", "MOP_Brazil_CFR_EUR", "KS_Realized_Price_EUR"]),
+                make_visual("tableEx", 30, 490, FW, 250, "Competitor Landscape",
+                            table="16_Competitor_Landscape",
+                            columns=["Producer", "Region", "Capacity_MT_yr", "Status", "Price_Impact"]),
+            ],
+        },
+        # Page 4: Customer Portfolio
+        {
+            "name": "Customer Portfolio",
+            "visuals": [
+                make_visual("card", 30, 20, 230, 120, "Customers", measure="Total Active Customers"),
+                make_visual("card", 290, 20, 230, 120, "Avg Price", measure="Avg Portfolio Price"),
+                make_visual("card", 550, 20, 230, 120, "Above Target", measure="Customers Above Target"),
+                make_visual("card", 810, 20, 230, 120, "Below Limit", measure="Customers Below Limit"),
+                make_visual("scatterChart", 30, 160, 590, 340, "Volume vs Price",
+                            table="11_Customer_Portfolio", category="Customer",
+                            x_col="Volume_MT", y_col="Price_EUR_MT"),
+                make_visual("scatterChart", 650, 160, 590, 340, "Volume vs Margin",
+                            table="11_Customer_Portfolio", category="Customer",
+                            x_col="Volume_MT", y_col="Margin_Pct"),
+                make_visual("tableEx", 30, 520, FW, 280, "Customer Detail",
+                            table="11_Customer_Portfolio",
+                            columns=["Customer", "Segment", "Archetype", "Volume_MT", "Price_EUR_MT", "Margin_Pct", "Trend"]),
+            ],
+        },
+        # Page 5: Pricing & Conditions
+        {
+            "name": "Pricing & Conditions",
+            "visuals": [
+                make_visual("card", 30, 20, 280, 130, "Condition Spending", measure="Total Condition Spending"),
+                make_visual("card", 340, 20, 280, 130, "Condition LY", measure="Total Condition LY"),
+                make_visual("tableEx", 30, 170, FW, 250, "Product Pricing",
+                            table="05_Pricing_by_Product",
+                            columns=["Product", "Avg_Price_EUR_MT", "Price_vs_LY_Pct", "Margin_Pct", "Margin_vs_LY_pp", "Volume_MT"]),
+                make_visual("clusteredBarChart", 30, 440, 580, 300, "Monthly Condition Spending",
+                            table="06_Condition_Spending_Monthly", category="Month",
+                            values=["Actual_M_EUR", "LastYear_M_EUR"]),
+                make_visual("tableEx", 640, 440, 610, 300, "Condition Breakdown",
+                            table="07_Condition_Breakdown",
+                            columns=["Condition_Type", "Actual_M_EUR", "Budget_M_EUR", "Variance_Pct", "Share_of_Revenue_Pct"]),
+            ],
+        },
+        # Page 6: Operations
+        {
+            "name": "Operations",
+            "visuals": [
+                make_visual("card", 30, 20, 280, 130, "Total Volume", measure="Total Actual Volume"),
+                make_visual("card", 340, 20, 280, 130, "Fulfillment", measure="Forecast Fulfillment Pct"),
+                make_visual("card", 650, 20, 280, 130, "Total Cost", measure="Total Actual Cost"),
+                make_visual("lineChart", 30, 170, 590, 280, "Monthly Volume",
+                            table="09_Volume_Monthly", category="Month",
+                            values=["Actual_MT", "Forecast_MT", "LastYear_MT"]),
+                make_visual("clusteredBarChart", 650, 170, 590, 280, "Cost by Category",
+                            table="10_Cost_by_Category", category="Category",
+                            values=["Actual_M_EUR", "Budget_M_EUR"]),
+                make_visual("tableEx", 30, 470, FW, 280, "Production Sites",
+                            table="17_Production_Sites",
+                            columns=["Site", "Location", "Product", "Utilization_Pct", "Output_MT", "Cost_per_MT_EUR", "Status"]),
+            ],
+        },
+        # Page 7: Pricing Deep-Dive
+        {
+            "name": "Pricing Deep-Dive",
+            "visuals": [
+                make_visual("card", 30, 20, 380, 130, "Gross Revenue", measure="Gross Revenue"),
+                make_visual("card", 440, 20, 380, 130, "Net Revenue", measure="Net Revenue"),
+                make_visual("clusteredBarChart", 30, 170, FW, 340, "Net Revenue Waterfall",
+                            table="08_Net_Revenue_Waterfall", category="Step_Name",
+                            values=["Value_M_EUR"]),
+                make_visual("tableEx", 30, 530, FW, 250, "Product Pricing Analysis",
+                            table="05_Pricing_by_Product",
+                            columns=["Product", "Avg_Price_EUR_MT", "Price_vs_LY_Pct", "Margin_Pct", "Volume_MT"]),
+            ],
+        },
+        # Page 8: Cost Deep-Dive
+        {
+            "name": "Cost Deep-Dive",
+            "visuals": [
+                make_visual("card", 30, 20, 380, 130, "Total Cost", measure="Total Actual Cost"),
+                make_visual("card", 440, 20, 380, 130, "Budget", measure="Total Budget Cost"),
+                make_visual("clusteredBarChart", 30, 170, FW, 300, "Cost — Actual vs Budget",
+                            table="10_Cost_by_Category", category="Category",
+                            values=["Actual_M_EUR", "Budget_M_EUR"]),
+                make_visual("tableEx", 30, 490, FW, 260, "Variance Detail",
+                            table="10_Cost_by_Category",
+                            columns=["Category", "Actual_M_EUR", "Budget_M_EUR", "Variance_M_EUR", "Variance_Pct"]),
+            ],
+        },
+        # Page 9: Alerts & Signals
+        {
+            "name": "Alerts & Signals",
+            "visuals": [
+                make_visual("tableEx", 30, 20, FW, 350, "Price Alerts",
+                            table="12_Price_Alerts",
+                            columns=["Customer", "Product", "Actual_Price_EUR", "Limit_Price_EUR", "Deviation_Pct", "Severity"]),
+                make_visual("tableEx", 30, 390, FW, 300, "Market Signals",
+                            table="18_Market_Signals",
+                            columns=["Title", "Description", "Impact"]),
+            ],
+        },
+        # Page 10: Data & Filters
+        {
+            "name": "Data & Filters",
+            "visuals": [
+                make_visual("tableEx", 30, 20, FW, 200, "Corridor Thresholds",
+                            table="19_Corridor_Thresholds",
+                            columns=["Metric", "Target", "Limit"]),
+                make_visual("tableEx", 30, 240, FW, 400, "Filter Options",
+                            table="20_Filter_Options",
+                            columns=["Filter_Type", "Option_Value", "Sort_Order"]),
+            ],
+        },
+    ]
+
     sections = []
-
-    for page in PAGE_DEFS:
-        section_name = f"ReportSection{uid().replace('-', '')[:16]}"
-        visual_containers = []
-
-        for idx, vis in enumerate(page["visuals"]):
-            cfg = make_visual_config(vis, idx)
-            container = {
-                "x": vis["x"],
-                "y": vis["y"],
-                "z": idx,
-                "width": vis["w"],
-                "height": vis["h"],
-                "config": json.dumps(cfg),
-                "filters": "[]",
-            }
-            visual_containers.append(container)
-
-        # Page-level config
-        page_config = {
+    for i, page in enumerate(pages):
+        section_id = uid().replace("-", "")[:16]
+        section_name = f"ReportSection{section_id}"
+        sections.append({
             "name": section_name,
-            "displayName": page["displayName"],
-            "objects": {
-                "background": [
-                    {
-                        "properties": {
-                            "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#f4f6f8'"}}}}},
-                            "transparency": {"expr": {"Literal": {"Value": "0D"}}},
-                        }
-                    }
-                ]
-            },
-        }
-
-        section = {
-            "name": section_name,
-            "displayName": page["displayName"],
+            "displayName": page["name"],
             "filters": "[]",
-            "ordinal": page["ordinal"],
-            "visualContainers": visual_containers,
-            "config": json.dumps(page_config),
+            "ordinal": i,
+            "visualContainers": page["visuals"],
+            "config": json.dumps({"name": section_name, "displayName": page["name"]}),
             "displayOption": 1,
             "width": 1280,
             "height": 960,
-        }
-        sections.append(section)
+        })
 
-    # Report-level config
     report_config = {
         "version": "5.53",
-        "themeCollection": {"baseTheme": {"name": "CY24SU11", "version": "5.53", "type": 2}},
+        "themeCollection": {
+            "baseTheme": {"name": "CY24SU11", "version": "5.53", "type": 2}
+        },
         "activeSectionIndex": 0,
         "defaultDrillFilterOtherVisuals": True,
-        "linguisticSchemaSyncVersion": 2,
-        "settings": {
-            "useStylableVisualContainerHeader": True,
-            "exportDataMode": 1,
-            "useDefaultAggregateDisplayName": True,
-        },
-        "objects": {
-            "section": [
-                {
-                    "properties": {
-                        "verticalAlignment": {"expr": {"Literal": {"Value": "'Top'"}}},
-                    }
-                }
-            ]
-        },
     }
 
-    layout = {
+    return {
         "id": 0,
-        "reportId": report_id,
+        "reportId": uid(),
         "sections": sections,
         "config": json.dumps(report_config),
         "layoutOptimization": 0,
     }
 
-    return layout
-
 
 # ---------------------------------------------------------------------------
-# Package .pbit
+# OPC Package / .pbit assembly
 # ---------------------------------------------------------------------------
 
-CONTENT_TYPES_XML = """<?xml version="1.0" encoding="utf-8"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="json" ContentType="application/json" />
-  <Override PartName="/DataModelSchema" ContentType="application/json" />
-  <Override PartName="/Report/Layout" ContentType="application/json" />
-  <Override PartName="/DiagramLayout" ContentType="application/json" />
-  <Override PartName="/Metadata" ContentType="application/json" />
-  <Override PartName="/Settings" ContentType="application/json" />
-  <Override PartName="/Version" ContentType="text/plain" />
-</Types>"""
+CONTENT_TYPES = '<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" /><Override PartName="/DataModelSchema" ContentType="" /><Override PartName="/Report/Layout" ContentType="" /><Override PartName="/DiagramLayout" ContentType="" /><Override PartName="/Settings" ContentType="" /><Override PartName="/Metadata" ContentType="" /><Override PartName="/Version" ContentType="" /></Types>'
+
+RELS = '<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Type="http://schemas.microsoft.com/DataModelSchema" Target="/DataModelSchema" Id="R1" /><Relationship Type="http://schemas.microsoft.com/ReportLayout" Target="/Report/Layout" Id="R2" /><Relationship Type="http://schemas.microsoft.com/DiagramLayout" Target="/DiagramLayout" Id="R3" /><Relationship Type="http://schemas.microsoft.com/Settings" Target="/Settings" Id="R4" /><Relationship Type="http://schemas.microsoft.com/Metadata" Target="/Metadata" Id="R5" /><Relationship Type="http://schemas.microsoft.com/Version" Target="/Version" Id="R6" /></Relationships>'
 
 
 def generate():
@@ -1081,33 +659,39 @@ def generate():
     print("Building report layout (10 pages with visuals)...")
     layout = build_report_layout()
 
-    metadata = {
-        "version": 3,
-        "creator": "K+S AgriMetrics Generator",
-    }
-
-    settings = {
-        "version": 3,
-    }
+    metadata_json = json.dumps({"version": 3})
+    settings_json = json.dumps({"version": 3})
+    diagram_json = json.dumps({"version": "1.0", "diagrams": []})
+    model_json = json.dumps(model, ensure_ascii=False)
+    layout_json = json.dumps(layout, ensure_ascii=False)
 
     print(f"Packaging {OUTPUT}...")
     with zipfile.ZipFile(OUTPUT, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("[Content_Types].xml", CONTENT_TYPES_XML)
+        # OPC required files
+        z.writestr("[Content_Types].xml", CONTENT_TYPES)
+        z.writestr("_rels/.rels", RELS)
+
+        # SecurityBindings (empty — required by Power BI even for unencrypted templates)
+        z.writestr("SecurityBindings", b"")
+
+        # Version — plain text
         z.writestr("Version", encode_utf16le("2.0"))
-        z.writestr("DataModelSchema", encode_utf16le(json.dumps(model, ensure_ascii=False)))
-        z.writestr("Report/Layout", encode_utf16le(json.dumps(layout, ensure_ascii=False)))
-        z.writestr("DiagramLayout", encode_utf16le(json.dumps({"version": "1.0", "diagrams": []})))
-        z.writestr("Metadata", encode_utf16le(json.dumps(metadata)))
-        z.writestr("Settings", encode_utf16le(json.dumps(settings)))
+
+        # Core content — UTF-16 LE BOM
+        z.writestr("DataModelSchema", encode_utf16le(model_json))
+        z.writestr("Report/Layout", encode_utf16le(layout_json))
+
+        # Supporting files — UTF-16 LE BOM
+        z.writestr("DiagramLayout", encode_utf16le(diagram_json))
+        z.writestr("Metadata", encode_utf16le(metadata_json))
+        z.writestr("Settings", encode_utf16le(settings_json))
 
     size_kb = os.path.getsize(OUTPUT) / 1024
     print(f"\nDone! Generated: {OUTPUT} ({size_kb:.0f} KB)")
-    print("\nNext steps:")
-    print("  1. Copy the .pbit file to your Windows PC")
-    print("  2. Double-click to open in Power BI Desktop")
-    print("  3. When prompted, click 'Load' to import all embedded data")
-    print("  4. Apply the K+S theme: View → Themes → Browse → KS_AgriMetrics_Theme.json")
-    print("  5. All 10 pages with visuals and DAX measures are ready!")
+    print("\nOpen the .pbit in Power BI Desktop:")
+    print("  1. Double-click KS_AgriMetrics_Dashboard.pbit")
+    print("  2. Click 'Load' when prompted")
+    print("  3. Apply theme: View > Themes > Browse > KS_AgriMetrics_Theme.json")
 
 
 if __name__ == "__main__":
