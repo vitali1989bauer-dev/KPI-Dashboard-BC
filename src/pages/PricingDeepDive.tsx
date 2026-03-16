@@ -111,13 +111,18 @@ export default function PricingDeepDive() {
               contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
             />
             <Bar dataKey="base" stackId="wf" fill="transparent" radius={0} />
-            <Bar dataKey="value" stackId="wf" radius={[6, 6, 0, 0]} label={({ x, y, width, index }: { x: number; y: number; width: number; index: number }) => {
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <Bar dataKey="value" stackId="wf" radius={[6, 6, 0, 0]} label={(props: any) => {
+              const x = Number(props.x ?? 0)
+              const y = Number(props.y ?? 0)
+              const width = Number(props.width ?? 0)
+              const index = props.index as number
               if (index == null || !wfData[index]) return null
               const entry = wfData[index]
               const isTotal = entry.fill === TOTAL_COLOR
               const label = isTotal ? entry.displayValue.toFixed(1) : entry.displayValue.toFixed(1)
               return (
-                <text x={(x ?? 0) + (width ?? 0) / 2} y={(y ?? 0) - 8} textAnchor="middle" fill={entry.fill} fontSize={12} fontWeight={600}>
+                <text x={x + width / 2} y={y - 8} textAnchor="middle" fill={entry.fill} fontSize={12} fontWeight={600}>
                   {label}
                 </text>
               )
