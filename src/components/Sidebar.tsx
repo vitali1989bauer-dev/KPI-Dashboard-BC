@@ -3,45 +3,45 @@ import {
   BarChart3,
   TrendingUp,
   DollarSign,
-  Package,
   Layers,
-  MoreHorizontal,
   LayoutDashboard,
   Sprout,
-  Target,
   Crosshair,
   Database,
+  Globe,
+  HelpCircle,
+  Activity,
 } from 'lucide-react'
 
 const navGroups = [
   {
     label: 'Overview',
     items: [
-      { path: '/', label: 'Top KPIs', icon: LayoutDashboard },
+      { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     ],
   },
   {
     label: 'Analysis',
     items: [
-      { path: '/sco-effect', label: 'SCO Effect', icon: TrendingUp },
-      { path: '/condition-spending', label: 'Condition Spending', icon: DollarSign },
+      { path: '/sco-effect', label: 'SCO Bridge', icon: TrendingUp },
+      { path: '/market-intelligence', label: 'Market Intelligence', icon: Globe },
+      { path: '/customer-portfolio', label: 'Customer Portfolio', icon: Crosshair },
+      { path: '/pricing-conditions', label: 'Pricing & Conditions', icon: DollarSign },
+      { path: '/operations', label: 'Operations', icon: Activity },
     ],
   },
   {
     label: 'Deep-dives',
     items: [
-      { path: '/pricing-deep-dive', label: 'Pricing', icon: BarChart3 },
-      { path: '/target-prices', label: 'Target & Limits', icon: Target },
-      { path: '/scatter-analysis', label: 'Customer Portfolio', icon: Crosshair },
-      { path: '/volume-deep-dive', label: 'Volume', icon: Package },
-      { path: '/cost-deep-dive', label: 'Cost', icon: Layers },
-      { path: '/other-deep-dive', label: 'Other', icon: MoreHorizontal },
+      { path: '/pricing-deep-dive', label: 'Pricing Detail', icon: BarChart3 },
+      { path: '/cost-deep-dive', label: 'Cost Detail', icon: Layers },
     ],
   },
   {
     label: 'System',
     items: [
       { path: '/data-connections', label: 'Data Connections', icon: Database },
+      { path: '/implementation', label: 'Implementation', icon: HelpCircle },
     ],
   },
 ]

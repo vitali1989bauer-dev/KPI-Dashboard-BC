@@ -5,6 +5,7 @@ import {
   countryClusters,
   customerSegments,
   customers,
+  pricingArchetypes,
   productGroups,
   timePeriods,
   type Filters,
@@ -111,6 +112,7 @@ export default function FilterBar() {
     { label: 'Cluster', key: 'cluster', options: countryClusters },
     { label: 'Segment', key: 'segment', options: customerSegments },
     { label: 'Customer', key: 'customer', options: customers },
+    { label: 'Archetype', key: 'archetype', options: pricingArchetypes },
     { label: 'Product', key: 'product', options: productGroups },
   ]
 

@@ -5,7 +5,8 @@ export const regions = ['All Regions', 'Europe', 'North America', 'South America
 export const countryClusters = ['All Clusters', 'DACH', 'Nordics', 'Benelux', 'Southern Europe', 'North America']
 export const customerSegments = ['All Segments', 'Arable Farming', 'Specialty Crops', 'Horticulture', 'Livestock & Feed', 'Industrial']
 export const customers = ['All Customers', 'BayWa', 'AGRAVIS', 'Nutrien', 'Yara', 'EuroChem']
-export const productGroups = ['All Products', 'Potash (MOP)', 'Kieserite', 'Fertilizer Specialties', 'De-icing Salt', 'Industrial Salt']
+export const pricingArchetypes = ['All Archetypes', 'Value Maximizer', 'Volume Partner', 'Spot Opportunist', 'Contract Loyal', 'Strategic Account']
+export const productGroups = ['All Products', 'Korn-Kali\u00AE', 'Patentkali\u00AE', '60er Kali', 'ESTA\u00AE Kieserit', 'Epso Top\u00AE', 'De-icing Salt', 'Industrial Salt', 'Food Grade Salt']
 export const timePeriods = ['Month-to-month', 'PL period', 'YTD', 'Full year / Fiscal year']
 
 export interface Filters {
@@ -14,6 +15,7 @@ export interface Filters {
   cluster: string
   segment: string
   customer: string
+  archetype: string
   product: string
 }
 
@@ -23,6 +25,7 @@ export const defaultFilters: Filters = {
   cluster: 'All Clusters',
   segment: 'All Segments',
   customer: 'All Customers',
+  archetype: 'All Archetypes',
   product: 'All Products',
 }
 
@@ -38,7 +41,7 @@ function hash(s: string): number {
 }
 
 function filterSeed(f: Filters): number {
-  const key = `${f.timePeriod}|${f.region}|${f.cluster}|${f.segment}|${f.customer}|${f.product}`
+  const key = `${f.timePeriod}|${f.region}|${f.cluster}|${f.segment}|${f.customer}|${f.archetype}|${f.product}`
   const h = Math.abs(hash(key))
   return (h % 1000) / 1000
 }
@@ -151,8 +154,46 @@ export function getScoWaterfallData(f: Filters): WaterfallItem[] {
 }
 
 // ---------------------------------------------------------------------------
-// Condition Spending
+// Pricing & Conditions — merged view
 // ---------------------------------------------------------------------------
+export interface PricingData {
+  segment: string
+  avgPrice: number
+  priceVsLY: number
+  margin: number
+  marginVsLY: number
+  volume: number
+}
+
+export function getPricingDeepDiveData(f: Filters): PricingData[] {
+  const base = [
+    { segment: 'Korn-Kali\u00AE (40% K\u2082O)', avgPrice: 312.5, priceVsLY: 4.8, margin: 28.3, marginVsLY: 1.5, volume: 245000 },
+    { segment: 'Patentkali\u00AE (30% K\u2082O)', avgPrice: 358.2, priceVsLY: 5.2, margin: 32.1, marginVsLY: 2.1, volume: 118000 },
+    { segment: '60er Kali (KCl gran.)', avgPrice: 286.4, priceVsLY: 3.1, margin: 24.8, marginVsLY: 0.9, volume: 198000 },
+    { segment: 'ESTA\u00AE Kieserit', avgPrice: 186.7, priceVsLY: 2.4, margin: 21.2, marginVsLY: -0.6, volume: 128000 },
+    { segment: 'Epso Top\u00AE', avgPrice: 425.8, priceVsLY: 6.1, margin: 35.6, marginVsLY: 2.8, volume: 67000 },
+    { segment: 'De-icing Salt', avgPrice: 48.3, priceVsLY: 1.9, margin: 18.4, marginVsLY: 0.3, volume: 890000 },
+    { segment: 'Industrial Salt', avgPrice: 62.1, priceVsLY: -0.8, margin: 15.7, marginVsLY: -1.2, volume: 520000 },
+    { segment: 'Food Grade Salt', avgPrice: 142.6, priceVsLY: 3.5, margin: 24.9, marginVsLY: 1.1, volume: 95000 },
+  ]
+
+  const productFilter = f.product
+  const filtered = productFilter === 'All Products'
+    ? base
+    : base.filter(r => r.segment.toLowerCase().includes(productFilter.toLowerCase().replace(/[®\u00AE]/g, '').slice(0, 6)))
+
+  const rows = (filtered.length > 0 ? filtered : base)
+
+  return rows.map((row, i) => ({
+    segment: row.segment,
+    avgPrice: vary(row.avgPrice, f, 70 + i),
+    priceVsLY: vary(row.priceVsLY, f, 80 + i),
+    margin: vary(row.margin, f, 90 + i),
+    marginVsLY: vary(row.marginVsLY, f, 100 + i),
+    volume: Math.round(vary(row.volume, f, 110 + i)),
+  }))
+}
+
 export interface ConditionSpendingItem {
   month: string
   actual: number
@@ -172,46 +213,7 @@ export function getConditionSpendingData(f: Filters): ConditionSpendingItem[] {
 }
 
 // ---------------------------------------------------------------------------
-// Pricing Deep-Dive
-// ---------------------------------------------------------------------------
-export interface PricingData {
-  segment: string
-  avgPrice: number
-  priceVsLY: number
-  margin: number
-  marginVsLY: number
-  volume: number
-}
-
-export function getPricingDeepDiveData(f: Filters): PricingData[] {
-  const base = [
-    { segment: 'Potash (MOP/KCl)', avgPrice: 312.5, priceVsLY: 4.8, margin: 28.3, marginVsLY: 1.5, volume: 245000 },
-    { segment: 'Kieserite (MgSO₄)', avgPrice: 186.7, priceVsLY: 2.4, margin: 21.2, marginVsLY: -0.6, volume: 128000 },
-    { segment: 'Fertilizer Specialties', avgPrice: 425.8, priceVsLY: 6.1, margin: 35.6, marginVsLY: 2.8, volume: 67000 },
-    { segment: 'De-icing Salt', avgPrice: 48.3, priceVsLY: 1.9, margin: 18.4, marginVsLY: 0.3, volume: 890000 },
-    { segment: 'Industrial Salt', avgPrice: 62.1, priceVsLY: -0.8, margin: 15.7, marginVsLY: -1.2, volume: 520000 },
-    { segment: 'Food Grade Salt', avgPrice: 142.6, priceVsLY: 3.5, margin: 24.9, marginVsLY: 1.1, volume: 95000 },
-  ]
-
-  const productFilter = f.product
-  const filtered = productFilter === 'All Products'
-    ? base
-    : base.filter(r => r.segment.toLowerCase().includes(productFilter.toLowerCase().replace('s', '').replace(' (mop)', '')))
-
-  const rows = (filtered.length > 0 ? filtered : base)
-
-  return rows.map((row, i) => ({
-    segment: row.segment,
-    avgPrice: vary(row.avgPrice, f, 70 + i),
-    priceVsLY: vary(row.priceVsLY, f, 80 + i),
-    margin: vary(row.margin, f, 90 + i),
-    marginVsLY: vary(row.marginVsLY, f, 100 + i),
-    volume: Math.round(vary(row.volume, f, 110 + i)),
-  }))
-}
-
-// ---------------------------------------------------------------------------
-// Volume Deep-Dive
+// Operations — Volume + Cost merged
 // ---------------------------------------------------------------------------
 export interface VolumeData {
   month: string
@@ -234,9 +236,6 @@ export function getVolumeDeepDiveData(f: Filters): VolumeData[] {
   }))
 }
 
-// ---------------------------------------------------------------------------
-// Cost Deep-Dive
-// ---------------------------------------------------------------------------
 export interface CostItem {
   category: string
   actual: number
@@ -265,162 +264,201 @@ export function getCostDeepDiveData(f: Filters): CostItem[] {
 }
 
 // ---------------------------------------------------------------------------
-// Target & Limit Prices — by customer group and product
-// ---------------------------------------------------------------------------
-export interface TargetPriceRow {
-  customerGroup: string
-  product: string
-  targetPrice: number
-  limitPrice: number
-  actualPrice: number
-  volumeMT: number
-}
-
-const customerGroups = ['BayWa', 'AGRAVIS', 'Nutrien', 'Yara', 'EuroChem']
-const productLines = ['Potash (MOP)', 'Kieserite', 'Fert. Specialties', 'De-icing Salt', 'Industrial Salt']
-
-const basePrices: Record<string, { target: number; limit: number; actual: number; vol: number }> = {
-  'Potash (MOP)': { target: 320, limit: 285, actual: 312, vol: 48000 },
-  'Kieserite': { target: 195, limit: 170, actual: 187, vol: 25000 },
-  'Fert. Specialties': { target: 440, limit: 395, actual: 426, vol: 13000 },
-  'De-icing Salt': { target: 52, limit: 42, actual: 48, vol: 178000 },
-  'Industrial Salt': { target: 68, limit: 55, actual: 62, vol: 104000 },
-}
-
-// Customer-specific multipliers (each customer has slightly different pricing)
-const custMul: Record<string, number> = {
-  'BayWa': 1.0,
-  'AGRAVIS': 0.97,
-  'Nutrien': 1.04,
-  'Yara': 1.02,
-  'EuroChem': 0.95,
-}
-
-export function getTargetPriceData(f: Filters): TargetPriceRow[] {
-  const rows: TargetPriceRow[] = []
-
-  const custFilter = f.customer
-  const prodFilter = f.product
-  const custs = custFilter === 'All Customers' ? customerGroups : customerGroups.filter(c => c === custFilter)
-  const prods = prodFilter === 'All Products'
-    ? productLines
-    : productLines.filter(p => p.toLowerCase().includes(prodFilter.toLowerCase().slice(0, 6)))
-
-  const activeCusts = custs.length > 0 ? custs : customerGroups
-  const activeProds = prods.length > 0 ? prods : productLines
-
-  for (const cust of activeCusts) {
-    for (const prod of activeProds) {
-      const bp = basePrices[prod] ?? basePrices['Potash (MOP)']
-      const cm = custMul[cust] ?? 1.0
-      const i = activeCusts.indexOf(cust) * 10 + activeProds.indexOf(prod)
-
-      rows.push({
-        customerGroup: cust,
-        product: prod,
-        targetPrice: vary(bp.target * cm, f, 200 + i),
-        limitPrice: vary(bp.limit * cm, f, 250 + i),
-        actualPrice: vary(bp.actual * cm, f, 300 + i),
-        volumeMT: Math.round(vary(bp.vol / activeCusts.length, f, 350 + i)),
-      })
-    }
-  }
-
-  return rows
-}
-
-// Summary for Target & Limit page
-export interface TargetPriceSummary {
-  totalRows: number
-  aboveTarget: number
-  inCorridor: number
-  belowLimit: number
-  avgRealization: number
-  totalVolume: number
-  revenueAtRisk: number
-}
-
-export function getTargetPriceSummary(rows: TargetPriceRow[]): TargetPriceSummary {
-  let aboveTarget = 0
-  let inCorridor = 0
-  let belowLimit = 0
-  let totalVol = 0
-  let revenueAtRisk = 0
-
-  for (const r of rows) {
-    totalVol += r.volumeMT
-    if (r.actualPrice >= r.targetPrice) aboveTarget++
-    else if (r.actualPrice >= r.limitPrice) inCorridor++
-    else {
-      belowLimit++
-      revenueAtRisk += (r.limitPrice - r.actualPrice) * r.volumeMT / 1_000_000
-    }
-  }
-
-  const avgRealization = rows.length > 0
-    ? rows.reduce((s, r) => s + (r.actualPrice / r.targetPrice) * 100, 0) / rows.length
-    : 0
-
-  return {
-    totalRows: rows.length,
-    aboveTarget,
-    inCorridor,
-    belowLimit,
-    avgRealization: Math.round(avgRealization * 10) / 10,
-    totalVolume: totalVol,
-    revenueAtRisk: Math.round(revenueAtRisk * 10) / 10,
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Scatter Plot — Customer positioning: volume vs. price point
+// Customer Portfolio — scatter + margin corridor + target/limits
 // ---------------------------------------------------------------------------
 export interface ScatterPoint {
   name: string
   segment: string
-  volume: number       // MT
-  pricePerMT: number   // €/MT
-  marginPct: number    // %
+  archetype: string
+  volume: number
+  pricePerMT: number
+  marginPct: number
+  targetMargin: number
+  limitMargin: number
   trend: 'up' | 'down' | 'flat'
 }
 
-const scatterBase: Omit<ScatterPoint, 'volume' | 'pricePerMT' | 'marginPct'>[] = [
-  { name: 'BayWa', segment: 'Arable Farming', trend: 'up' },
-  { name: 'AGRAVIS', segment: 'Arable Farming', trend: 'flat' },
-  { name: 'Nutrien', segment: 'Specialty Crops', trend: 'up' },
-  { name: 'Yara', segment: 'Specialty Crops', trend: 'up' },
-  { name: 'EuroChem', segment: 'Industrial', trend: 'down' },
-  { name: 'Südzucker AG', segment: 'Specialty Crops', trend: 'flat' },
-  { name: 'Raiffeisen', segment: 'Arable Farming', trend: 'up' },
-  { name: 'Agrarfrost', segment: 'Horticulture', trend: 'down' },
-  { name: 'Nordsaat', segment: 'Arable Farming', trend: 'flat' },
-  { name: 'CropEnergies', segment: 'Specialty Crops', trend: 'up' },
-  { name: 'SKW Piesteritz', segment: 'Industrial', trend: 'flat' },
-  { name: 'Helm AG', segment: 'Industrial', trend: 'down' },
-  { name: 'Lemken', segment: 'Arable Farming', trend: 'up' },
-  { name: 'Borealis L.A.T', segment: 'Specialty Crops', trend: 'flat' },
-  { name: 'ICL Group', segment: 'Industrial', trend: 'up' },
-  { name: 'Evonik Industries', segment: 'Industrial', trend: 'flat' },
-  { name: 'Compo Expert', segment: 'Horticulture', trend: 'up' },
-  { name: 'Haifa Group', segment: 'Horticulture', trend: 'up' },
-  { name: 'Tessenderlo', segment: 'Specialty Crops', trend: 'down' },
-  { name: 'BASF Agro', segment: 'Arable Farming', trend: 'up' },
+const scatterBase: Omit<ScatterPoint, 'volume' | 'pricePerMT' | 'marginPct' | 'targetMargin' | 'limitMargin'>[] = [
+  { name: 'BayWa', segment: 'Arable Farming', archetype: 'Contract Loyal', trend: 'up' },
+  { name: 'AGRAVIS', segment: 'Arable Farming', archetype: 'Volume Partner', trend: 'flat' },
+  { name: 'Nutrien', segment: 'Specialty Crops', archetype: 'Strategic Account', trend: 'up' },
+  { name: 'Yara', segment: 'Specialty Crops', archetype: 'Value Maximizer', trend: 'up' },
+  { name: 'EuroChem', segment: 'Industrial', archetype: 'Spot Opportunist', trend: 'down' },
+  { name: 'Südzucker AG', segment: 'Specialty Crops', archetype: 'Contract Loyal', trend: 'flat' },
+  { name: 'Raiffeisen', segment: 'Arable Farming', archetype: 'Volume Partner', trend: 'up' },
+  { name: 'Agrarfrost', segment: 'Horticulture', archetype: 'Value Maximizer', trend: 'down' },
+  { name: 'Nordsaat', segment: 'Arable Farming', archetype: 'Contract Loyal', trend: 'flat' },
+  { name: 'CropEnergies', segment: 'Specialty Crops', archetype: 'Strategic Account', trend: 'up' },
+  { name: 'SKW Piesteritz', segment: 'Industrial', archetype: 'Spot Opportunist', trend: 'flat' },
+  { name: 'Helm AG', segment: 'Industrial', archetype: 'Spot Opportunist', trend: 'down' },
+  { name: 'Lemken', segment: 'Arable Farming', archetype: 'Value Maximizer', trend: 'up' },
+  { name: 'Borealis L.A.T', segment: 'Specialty Crops', archetype: 'Strategic Account', trend: 'flat' },
+  { name: 'ICL Group', segment: 'Industrial', archetype: 'Volume Partner', trend: 'up' },
+  { name: 'Evonik Industries', segment: 'Industrial', archetype: 'Contract Loyal', trend: 'flat' },
+  { name: 'Compo Expert', segment: 'Horticulture', archetype: 'Value Maximizer', trend: 'up' },
+  { name: 'Haifa Group', segment: 'Horticulture', archetype: 'Strategic Account', trend: 'up' },
+  { name: 'Tessenderlo', segment: 'Specialty Crops', archetype: 'Volume Partner', trend: 'down' },
+  { name: 'BASF Agro', segment: 'Arable Farming', archetype: 'Strategic Account', trend: 'up' },
 ]
 
 const baseVols = [48200, 42800, 61500, 55200, 38700, 22400, 31500, 15800, 18900, 26700, 44100, 35600, 19400, 28300, 52800, 33200, 12600, 17800, 24500, 39800]
 const basePricePts = [312, 295, 335, 328, 278, 348, 302, 385, 290, 356, 265, 252, 318, 342, 288, 275, 395, 372, 315, 308]
 const baseMargins = [26.4, 24.1, 31.2, 29.8, 21.5, 33.8, 25.2, 36.1, 23.8, 34.5, 19.2, 17.8, 27.6, 32.4, 22.8, 20.1, 38.2, 35.4, 28.9, 26.8]
+const baseTargetMargins = [28, 26, 30, 30, 24, 32, 26, 34, 25, 33, 22, 20, 28, 31, 24, 22, 36, 34, 29, 27]
+const baseLimitMargins = [20, 18, 22, 22, 16, 24, 18, 26, 17, 25, 14, 12, 20, 23, 16, 14, 28, 26, 21, 19]
 
 export function getScatterData(f: Filters): ScatterPoint[] {
-  return scatterBase.map((pt, i) => ({
+  let data = scatterBase.map((pt, i) => ({
     ...pt,
     volume: Math.round(vary(baseVols[i], f, 400 + i)),
     pricePerMT: vary(basePricePts[i], f, 420 + i),
     marginPct: vary(baseMargins[i], f, 440 + i),
+    targetMargin: vary(baseTargetMargins[i], f, 460 + i),
+    limitMargin: vary(baseLimitMargins[i], f, 480 + i),
   }))
+
+  if (f.archetype !== 'All Archetypes') {
+    data = data.filter(d => d.archetype === f.archetype)
+  }
+
+  return data
 }
 
 export const scatterCorridors = {
   targetPrice: 310,
   limitPrice: 260,
+  targetMargin: 28,
+  limitMargin: 18,
+}
+
+// ---------------------------------------------------------------------------
+// Price Alerts
+// ---------------------------------------------------------------------------
+export interface PriceAlert {
+  id: string
+  customer: string
+  product: string
+  actualPrice: number
+  limitPrice: number
+  deviation: number
+  severity: 'critical' | 'warning'
+  timestamp: string
+}
+
+export function getPriceAlerts(f: Filters): PriceAlert[] {
+  const base: PriceAlert[] = [
+    { id: 'a1', customer: 'EuroChem', product: '60er Kali', actualPrice: vary(248, f, 600), limitPrice: 270, deviation: 0, severity: 'critical', timestamp: '2026-03-16 07:42' },
+    { id: 'a2', customer: 'Helm AG', product: 'Korn-Kali\u00AE', actualPrice: vary(262, f, 601), limitPrice: 285, deviation: 0, severity: 'critical', timestamp: '2026-03-15 16:20' },
+    { id: 'a3', customer: 'SKW Piesteritz', product: 'Industrial Salt', actualPrice: vary(51, f, 602), limitPrice: 55, deviation: 0, severity: 'warning', timestamp: '2026-03-15 11:05' },
+    { id: 'a4', customer: 'Tessenderlo', product: 'ESTA\u00AE Kieserit', actualPrice: vary(158, f, 603), limitPrice: 170, deviation: 0, severity: 'warning', timestamp: '2026-03-14 14:30' },
+    { id: 'a5', customer: 'Nordsaat', product: 'Patentkali\u00AE', actualPrice: vary(305, f, 604), limitPrice: 320, deviation: 0, severity: 'warning', timestamp: '2026-03-14 09:15' },
+  ]
+  return base.map(a => ({
+    ...a,
+    deviation: Math.round((a.actualPrice - a.limitPrice) / a.limitPrice * 1000) / 10,
+  }))
+}
+
+// ---------------------------------------------------------------------------
+// Market Intelligence — benchmarks, FX, input costs
+// ---------------------------------------------------------------------------
+export interface BenchmarkPoint {
+  month: string
+  mopVancouver: number
+  mopBaltic: number
+  mopBrazil: number
+  ksRealized: number
+}
+
+export function getBenchmarkData(f: Filters): BenchmarkPoint[] {
+  const baseMopVan = [285, 292, 288, 305, 318, 325, 312, 308, 322, 330, 335, 340]
+  const baseMopBalt = [275, 280, 278, 292, 308, 315, 302, 298, 312, 320, 325, 330]
+  const baseMopBrz = [310, 318, 312, 328, 342, 350, 335, 330, 345, 355, 360, 365]
+  const baseKsReal = [312, 320, 315, 335, 348, 355, 340, 332, 350, 358, 362, 368]
+
+  return ALL_MONTHS.map((month, i) => ({
+    month,
+    mopVancouver: vary(baseMopVan[i], f, 700 + i),
+    mopBaltic: vary(baseMopBalt[i], f, 720 + i),
+    mopBrazil: vary(baseMopBrz[i], f, 740 + i),
+    ksRealized: vary(baseKsReal[i], f, 760 + i),
+  }))
+}
+
+export interface InputCostPoint {
+  month: string
+  naturalGas: number  // EUR/MWh
+  electricity: number // EUR/MWh
+  freight: number     // index
+}
+
+export function getInputCostData(f: Filters): InputCostPoint[] {
+  const baseGas = [28.5, 31.2, 29.8, 26.4, 24.1, 22.8, 21.5, 23.2, 25.8, 28.4, 32.1, 35.6]
+  const baseElec = [62, 68, 65, 58, 54, 52, 50, 53, 57, 63, 70, 75]
+  const baseFreight = [104, 108, 106, 112, 118, 115, 110, 108, 114, 120, 124, 128]
+
+  return ALL_MONTHS.map((month, i) => ({
+    month,
+    naturalGas: vary(baseGas[i], f, 800 + i),
+    electricity: vary(baseElec[i], f, 820 + i),
+    freight: vary(baseFreight[i], f, 840 + i),
+  }))
+}
+
+export interface FxPoint {
+  month: string
+  eurUsd: number
+  eurBrl: number
+}
+
+export function getFxData(f: Filters): FxPoint[] {
+  const baseEurUsd = [1.08, 1.09, 1.07, 1.10, 1.12, 1.11, 1.09, 1.08, 1.10, 1.11, 1.12, 1.13]
+  const baseEurBrl = [5.32, 5.41, 5.28, 5.45, 5.52, 5.48, 5.38, 5.35, 5.42, 5.50, 5.55, 5.60]
+
+  return ALL_MONTHS.map((month, i) => ({
+    month,
+    eurUsd: vary(baseEurUsd[i], f, 900 + i),
+    eurBrl: vary(baseEurBrl[i], f, 920 + i),
+  }))
+}
+
+export interface MarketSignal {
+  title: string
+  description: string
+  impact: 'positive' | 'negative' | 'neutral'
+}
+
+export function getMarketSignals(f: Filters): MarketSignal[] {
+  const premium = vary(4.2, f, 950)
+  const gasChange = vary(-8.3, f, 951)
+  const fxImpact = vary(1.4, f, 952)
+
+  return [
+    {
+      title: `K+S Premium at ${premium.toFixed(1)}% above MOP Vancouver`,
+      description: premium > 5
+        ? 'Premium is healthy — K+S quality & logistics advantages are well priced-in. Maintain current list prices.'
+        : 'Premium narrowing vs. Q1 (+8.1%). Review list prices for Korn-Kali\u00AE and 60er Kali in DACH region.',
+      impact: premium > 5 ? 'positive' : 'negative',
+    },
+    {
+      title: `Natural gas TTF ${gasChange >= 0 ? '+' : ''}${gasChange.toFixed(1)}% vs. prior quarter`,
+      description: gasChange < 0
+        ? 'Falling gas prices improve potash production margins. Consider passing savings selectively to Volume Partners to secure contract renewals.'
+        : 'Rising energy costs put pressure on margins. Evaluate price surcharge activation for Industrial Salt segment.',
+      impact: gasChange < 0 ? 'positive' : 'negative',
+    },
+    {
+      title: `EUR/USD impact: ${fxImpact >= 0 ? '+' : ''}${fxImpact.toFixed(1)} M€ revenue effect`,
+      description: fxImpact >= 0
+        ? 'Weaker EUR supports USD-denominated export revenues. South America and Asia Pacific margins benefit.'
+        : 'Stronger EUR reduces export competitiveness. Monitor pricing in BRL-denominated Brazil contracts.',
+      impact: fxImpact >= 0 ? 'positive' : 'negative',
+    },
+    {
+      title: 'Competitor signal: Belaruskali capacity constraints continue',
+      description: 'Sanctions-related supply disruptions keep global MOP supply tight. Supports K+S pricing power in European markets through H2. Strategic Accounts may accept +3-5% on renewals.',
+      impact: 'positive',
+    },
+  ]
 }
