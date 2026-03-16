@@ -1,5 +1,15 @@
+import { useMemo } from 'react'
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { getTopKpis, type KpiCard } from '../data/mockData'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
+import { getTopKpis, getScoTrendData, type KpiCard } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 import InfoTooltip from '../components/InfoTooltip'
 
@@ -93,6 +103,7 @@ export default function TopKPIs() {
   const vsLy = kpis[1]
   const vsPl = kpis[2]
   const vsTgt = kpis[3]
+  const trendData = useMemo(() => getScoTrendData(filters), [filters])
 
   return (
     <div>
@@ -144,6 +155,55 @@ export default function TopKPIs() {
         {kpis.slice(4).map((kpi) => (
           <KpiCardComponent key={kpi.id} kpi={kpi} tooltip={kpiTooltips[kpi.id]} />
         ))}
+      </div>
+
+      {/* SCO/MT 12-Month Trend */}
+      <div className="mt-6 bg-card rounded-xl border border-border p-6">
+        <div className="flex items-center justify-between mb-1">
+          <div>
+            <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">SCO/MT — 12 Month Trend</h3>
+            <p className="text-xs text-text-muted mt-0.5">Actual vs. Plan (&euro;/MT)</p>
+          </div>
+          <div className="flex items-center gap-5 text-xs text-text-muted">
+            <span className="flex items-center gap-1.5"><span className="w-6 h-[3px] rounded-full bg-primary inline-block" /> Actual</span>
+            <span className="flex items-center gap-1.5"><span className="w-6 h-[3px] rounded-full bg-accent inline-block opacity-60" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #667885 0, #667885 4px, transparent 4px, transparent 8px)' }} /> Plan</span>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={trendData} margin={{ top: 16, right: 12, bottom: 0, left: -12 }}>
+            <defs>
+              <linearGradient id="scoGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#173B7A" stopOpacity={0.18} />
+                <stop offset="100%" stopColor="#173B7A" stopOpacity={0.01} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#667885' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 12, fill: '#667885' }} axisLine={false} tickLine={false} domain={['dataMin - 15', 'dataMax + 10']} tickFormatter={(v: number) => `€${v}`} />
+            <Tooltip
+              formatter={(value) => [`€ ${Number(value).toFixed(1)} /MT`]}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
+            />
+            <Area
+              type="monotone"
+              dataKey="plan"
+              stroke="#667885"
+              strokeWidth={1.5}
+              strokeDasharray="6 4"
+              fill="none"
+              dot={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="actual"
+              stroke="#173B7A"
+              strokeWidth={2.5}
+              fill="url(#scoGrad)"
+              dot={{ r: 3.5, fill: '#173B7A', stroke: '#fff', strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: '#173B7A', stroke: '#fff', strokeWidth: 2 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )

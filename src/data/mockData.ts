@@ -53,6 +53,8 @@ function vary(base: number, f: Filters, offset = 0): number {
   return Math.round(base * factor(f, offset) * 10) / 10
 }
 
+const ALL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 function monthsForPeriod(period: string): number {
   switch (period) {
     case 'Month-to-month': return 1
@@ -100,6 +102,26 @@ export function getTopKpis(f: Filters): KpiCard[] {
 }
 
 // ---------------------------------------------------------------------------
+// SCO/MT 12-month trend for dashboard area chart
+// ---------------------------------------------------------------------------
+export interface ScoTrendPoint {
+  month: string
+  actual: number
+  plan: number
+}
+
+const baseScoTrend = [198, 204, 195, 211, 218, 223, 215, 208, 220, 226, 230, 234]
+const basePlanTrend = [205, 208, 210, 212, 215, 217, 219, 221, 223, 225, 227, 230]
+
+export function getScoTrendData(f: Filters): ScoTrendPoint[] {
+  return ALL_MONTHS.map((month, i) => ({
+    month,
+    actual: vary(baseScoTrend[i], f, 500 + i),
+    plan: vary(basePlanTrend[i], f, 520 + i),
+  }))
+}
+
+// ---------------------------------------------------------------------------
 // SCO Waterfall
 // ---------------------------------------------------------------------------
 export interface WaterfallItem {
@@ -137,7 +159,6 @@ export interface ConditionSpendingItem {
   lastYear: number
 }
 
-const ALL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const baseActual = [2.4, 2.1, 2.8, 3.2, 3.6, 2.5, 1.8, 1.6, 2.2, 2.7, 1.9, 1.4]
 const baseLY = [2.0, 1.8, 2.3, 2.7, 3.1, 2.2, 1.6, 1.4, 1.9, 2.3, 1.7, 1.2]
 
