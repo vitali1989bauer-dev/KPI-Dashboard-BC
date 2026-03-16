@@ -1,10 +1,52 @@
+import { useMemo } from 'react'
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { getPricingDeepDiveData } from '../data/mockData'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts'
+import { getPricingDeepDiveData, getNetRevenueWaterfall } from '../data/mockData'
 import { useFilters } from '../FilterContext'
+import InfoTooltip from '../components/InfoTooltip'
+
+const TOTAL_COLOR = '#173B7A'
+const NEGATIVE_COLOR = '#c43e3e'
+
+interface WfPoint {
+  name: string
+  base: number
+  value: number
+  displayValue: number
+  fill: string
+}
+
+function buildNetRevWaterfall(steps: ReturnType<typeof getNetRevenueWaterfall>): WfPoint[] {
+  const result: WfPoint[] = []
+  let running = 0
+  for (const item of steps) {
+    if (item.type === 'start') {
+      result.push({ name: item.name, base: 0, value: item.value, displayValue: item.value, fill: TOTAL_COLOR })
+      running = item.value
+    } else if (item.type === 'end') {
+      result.push({ name: item.name, base: 0, value: item.value, displayValue: item.value, fill: TOTAL_COLOR })
+    } else {
+      result.push({ name: item.name.replace('\n', ' '), base: running + item.value, value: Math.abs(item.value), displayValue: item.value, fill: NEGATIVE_COLOR })
+      running += item.value
+    }
+  }
+  return result
+}
 
 export default function PricingDeepDive() {
   const { filters } = useFilters()
   const data = getPricingDeepDiveData(filters)
+  const netRevSteps = getNetRevenueWaterfall(filters)
+  const wfData = useMemo(() => buildNetRevWaterfall(netRevSteps), [netRevSteps])
 
   const totalVol = data.reduce((s, r) => s + r.volume, 0)
   const avgPrice = data.reduce((s, r) => s + r.avgPrice * r.volume, 0) / totalVol
@@ -42,6 +84,54 @@ export default function PricingDeepDive() {
         <div className="bg-card rounded-xl border border-border p-5 card-hover">
           <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Total Volume</p>
           <p className="text-2xl font-bold text-text-primary">{(totalVol / 1000).toFixed(1)}k MT</p>
+        </div>
+      </div>
+
+      {/* Net Revenue Waterfall (Gross-to-Net) */}
+      <div className="bg-card rounded-xl border border-border p-6 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+            Net Revenue Waterfall — Gross to Net (M€)
+          </h3>
+          <InfoTooltip text="Shows how gross revenue is reduced by trade discounts, logistics allowances, volume rebates, promotional conditions, and early payment discounts to arrive at net revenue. Key metric for revenue leakage analysis." />
+        </div>
+        <ResponsiveContainer width="100%" height={380}>
+          <BarChart data={wfData} barCategoryGap="16%">
+            <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M€`} />
+            <Tooltip
+              formatter={(_value, _name, props) => {
+                const p = (props as { payload: WfPoint }).payload
+                return [
+                  `${p.displayValue >= 0 ? '' : ''}${p.displayValue.toFixed(1)} M€`,
+                  p.fill === TOTAL_COLOR ? 'Total' : 'Deduction',
+                ]
+              }}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
+            />
+            <Bar dataKey="base" stackId="wf" fill="transparent" radius={0} />
+            <Bar dataKey="value" stackId="wf" radius={[6, 6, 0, 0]} label={({ x, y, width, index }: { x: number; y: number; width: number; index: number }) => {
+              if (index == null || !wfData[index]) return null
+              const entry = wfData[index]
+              const isTotal = entry.fill === TOTAL_COLOR
+              const label = isTotal ? entry.displayValue.toFixed(1) : entry.displayValue.toFixed(1)
+              return (
+                <text x={(x ?? 0) + (width ?? 0) / 2} y={(y ?? 0) - 8} textAnchor="middle" fill={entry.fill} fontSize={12} fontWeight={600}>
+                  {label}
+                </text>
+              )
+            }}>
+              {wfData.map((entry, idx) => (
+                <Cell key={idx} fill={entry.fill} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+        <div className="mt-3 flex items-center gap-6 text-xs text-text-muted">
+          <span>Total Conditions: <strong className="text-negative">{(netRevSteps[0].value - netRevSteps[netRevSteps.length - 1].value).toFixed(1)} M€</strong></span>
+          <span>Condition Ratio: <strong className="text-text-primary">{((netRevSteps[0].value - netRevSteps[netRevSteps.length - 1].value) / netRevSteps[0].value * 100).toFixed(1)}%</strong> of gross revenue</span>
+          <span>Net/Gross Ratio: <strong className="text-positive">{(netRevSteps[netRevSteps.length - 1].value / netRevSteps[0].value * 100).toFixed(1)}%</strong></span>
         </div>
       </div>
 

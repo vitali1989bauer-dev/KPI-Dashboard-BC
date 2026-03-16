@@ -135,20 +135,28 @@ export interface WaterfallItem {
 
 export function getScoWaterfallData(f: Filters): WaterfallItem[] {
   const lyBase = vary(203.8, f, 20)
-  const price = vary(11.2, f, 21)
-  const volume = vary(-3.4, f, 22)
-  const cost = vary(5.6, f, 23)
-  const newBiz = vary(3.9, f, 24)
-  const mix = vary(-2.6, f, 25)
-  const current = Math.round((lyBase + price + volume + cost + newBiz + mix) * 10) / 10
+  const listPrice = vary(8.4, f, 21)
+  const conditions = vary(-3.2, f, 22)
+  const volume = vary(-2.1, f, 23)
+  const energy = vary(-4.8, f, 24)
+  const rawMat = vary(2.3, f, 25)
+  const logistics = vary(-1.5, f, 26)
+  const fx = vary(1.8, f, 27)
+  const productMix = vary(-1.6, f, 28)
+  const newBiz = vary(3.2, f, 29)
+  const current = Math.round((lyBase + listPrice + conditions + volume + energy + rawMat + logistics + fx + productMix + newBiz) * 10) / 10
 
   return [
     { name: 'Actual SCO/MT\nLast Year', value: lyBase, type: 'start' },
-    { name: 'Price\nEffect', value: price, type: price >= 0 ? 'positive' : 'negative' },
-    { name: 'Volume\nEffect', value: volume, type: volume >= 0 ? 'positive' : 'negative' },
-    { name: 'Cost\nEffect', value: cost, type: cost >= 0 ? 'positive' : 'negative' },
+    { name: 'List Price\nEffect', value: listPrice, type: listPrice >= 0 ? 'positive' : 'negative' },
+    { name: 'Condition\nEffect', value: conditions, type: conditions >= 0 ? 'positive' : 'negative' },
+    { name: 'Volume /\nCapacity', value: volume, type: volume >= 0 ? 'positive' : 'negative' },
+    { name: 'Energy\nCosts', value: energy, type: energy >= 0 ? 'positive' : 'negative' },
+    { name: 'Raw Material\n& Mining', value: rawMat, type: rawMat >= 0 ? 'positive' : 'negative' },
+    { name: 'Logistics &\nFreight', value: logistics, type: logistics >= 0 ? 'positive' : 'negative' },
+    { name: 'FX\nEffect', value: fx, type: fx >= 0 ? 'positive' : 'negative' },
+    { name: 'Product Mix\nEffect', value: productMix, type: productMix >= 0 ? 'positive' : 'negative' },
     { name: 'New Business\nEffect', value: newBiz, type: newBiz >= 0 ? 'positive' : 'negative' },
-    { name: 'Portfolio Mix\nEffect', value: mix, type: mix >= 0 ? 'positive' : 'negative' },
     { name: 'Actual SCO/MT\nCurrent', value: current, type: 'end' },
   ]
 }
@@ -426,6 +434,162 @@ export interface MarketSignal {
   title: string
   description: string
   impact: 'positive' | 'negative' | 'neutral'
+}
+
+// ---------------------------------------------------------------------------
+// Net Revenue Waterfall (Gross-to-Net) for Pricing Deep Dive
+// ---------------------------------------------------------------------------
+export interface NetRevenueStep {
+  name: string
+  value: number
+  type: 'start' | 'end' | 'positive' | 'negative'
+}
+
+export function getNetRevenueWaterfall(f: Filters): NetRevenueStep[] {
+  const grossRev = vary(485.2, f, 1000)
+  const tradeDisc = vary(-28.4, f, 1001)
+  const logAllow = vary(-14.7, f, 1002)
+  const rebates = vary(-18.2, f, 1003)
+  const promo = vary(-8.6, f, 1004)
+  const earlyPay = vary(-3.8, f, 1005)
+  const netRev = Math.round((grossRev + tradeDisc + logAllow + rebates + promo + earlyPay) * 10) / 10
+
+  return [
+    { name: 'Gross Revenue', value: grossRev, type: 'start' },
+    { name: 'Trade Discounts', value: tradeDisc, type: 'negative' },
+    { name: 'Logistics\nAllowances', value: logAllow, type: 'negative' },
+    { name: 'Volume\nRebates', value: rebates, type: 'negative' },
+    { name: 'Promotional\nConditions', value: promo, type: 'negative' },
+    { name: 'Early Payment\nDiscounts', value: earlyPay, type: 'negative' },
+    { name: 'Net Revenue', value: netRev, type: 'end' },
+  ]
+}
+
+// ---------------------------------------------------------------------------
+// Condition Spending by Type (for PricingConditions breakdown)
+// ---------------------------------------------------------------------------
+export interface ConditionTypeItem {
+  type: string
+  actual: number
+  budget: number
+  variance: number
+  variancePct: number
+  shareOfRevenue: number
+}
+
+export function getConditionBreakdown(f: Filters): ConditionTypeItem[] {
+  const base = [
+    { type: 'Trade Discounts', actual: 28.4, budget: 26.0, shareOfRevenue: 5.8 },
+    { type: 'Volume Rebates', actual: 18.2, budget: 19.5, shareOfRevenue: 3.7 },
+    { type: 'Logistics Allowances', actual: 14.7, budget: 13.8, shareOfRevenue: 3.0 },
+    { type: 'Promotional Conditions', actual: 8.6, budget: 7.2, shareOfRevenue: 1.8 },
+    { type: 'Early Payment Discounts', actual: 3.8, budget: 3.5, shareOfRevenue: 0.8 },
+    { type: 'Special Agreements', actual: 5.1, budget: 4.8, shareOfRevenue: 1.0 },
+  ]
+
+  return base.map((row, i) => {
+    const actual = vary(row.actual, f, 1100 + i)
+    const budget = vary(row.budget, f, 1110 + i)
+    const variance = Math.round((actual - budget) * 10) / 10
+    const variancePct = Math.round((variance / budget) * 1000) / 10
+    return { type: row.type, actual, budget, variance, variancePct, shareOfRevenue: vary(row.shareOfRevenue, f, 1120 + i) }
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Production Site Performance (for Operations)
+// ---------------------------------------------------------------------------
+export interface ProductionSite {
+  site: string
+  location: string
+  product: string
+  capacityMT: number
+  utilizationPct: number
+  outputMT: number
+  costPerMT: number
+  costVsBudget: number
+  status: 'on-track' | 'attention' | 'critical'
+}
+
+export function getProductionSites(f: Filters): ProductionSite[] {
+  const base: ProductionSite[] = [
+    { site: 'Werra Plant', location: 'Heringen, Hesse', product: 'Korn-Kali\u00AE / 60er Kali', capacityMT: 2200000, utilizationPct: 91.2, outputMT: 2006400, costPerMT: 82.4, costVsBudget: 3.2, status: 'on-track' },
+    { site: 'Zielitz Mine', location: 'Saxony-Anhalt', product: 'KCl / Korn-Kali\u00AE', capacityMT: 2000000, utilizationPct: 88.5, outputMT: 1770000, costPerMT: 78.6, costVsBudget: -1.4, status: 'on-track' },
+    { site: 'Bernburg Plant', location: 'Saxony-Anhalt', product: 'Industrial & Food Salt', capacityMT: 1800000, utilizationPct: 94.1, outputMT: 1693800, costPerMT: 24.8, costVsBudget: 5.1, status: 'attention' },
+    { site: 'Bethune Mine', location: 'Saskatchewan, CA', product: 'KCl / Potash', capacityMT: 2000000, utilizationPct: 72.3, outputMT: 1446000, costPerMT: 95.2, costVsBudget: 8.7, status: 'critical' },
+    { site: 'Sigmundshall', location: 'Lower Saxony', product: 'Patentkali\u00AE / Kieserit', capacityMT: 800000, utilizationPct: 85.8, outputMT: 686400, costPerMT: 105.3, costVsBudget: 2.1, status: 'on-track' },
+  ]
+
+  return base.map((site, i) => ({
+    ...site,
+    utilizationPct: vary(site.utilizationPct, f, 1200 + i),
+    outputMT: Math.round(vary(site.outputMT, f, 1210 + i)),
+    costPerMT: vary(site.costPerMT, f, 1220 + i),
+    costVsBudget: vary(site.costVsBudget, f, 1230 + i),
+  }))
+}
+
+// ---------------------------------------------------------------------------
+// Product SCO Contribution (for Dashboard)
+// ---------------------------------------------------------------------------
+export interface ProductScoContribution {
+  product: string
+  scoPerMT: number
+  volumeMT: number
+  totalScoM: number
+  shareOfTotal: number
+  vsLY: number
+}
+
+export function getProductScoContribution(f: Filters): ProductScoContribution[] {
+  const base = [
+    { product: 'Korn-Kali\u00AE', scoPerMT: 218, volumeMT: 245000, vsLY: 6.2 },
+    { product: 'Patentkali\u00AE', scoPerMT: 285, volumeMT: 118000, vsLY: 8.4 },
+    { product: '60er Kali', scoPerMT: 195, volumeMT: 198000, vsLY: 3.1 },
+    { product: 'ESTA\u00AE Kieserit', scoPerMT: 142, volumeMT: 128000, vsLY: -2.8 },
+    { product: 'Epso Top\u00AE', scoPerMT: 312, volumeMT: 67000, vsLY: 9.5 },
+    { product: 'De-icing Salt', scoPerMT: 12, volumeMT: 890000, vsLY: 1.2 },
+    { product: 'Industrial Salt', scoPerMT: 8, volumeMT: 520000, vsLY: -4.1 },
+    { product: 'Food Grade Salt', scoPerMT: 28, volumeMT: 95000, vsLY: 5.3 },
+  ]
+
+  const items = base.map((row, i) => {
+    const sco = vary(row.scoPerMT, f, 1300 + i)
+    const vol = Math.round(vary(row.volumeMT, f, 1310 + i))
+    return {
+      product: row.product,
+      scoPerMT: sco,
+      volumeMT: vol,
+      totalScoM: Math.round(sco * vol / 1000000 * 10) / 10,
+      shareOfTotal: 0,
+      vsLY: vary(row.vsLY, f, 1320 + i),
+    }
+  })
+
+  const totalSco = items.reduce((s, r) => s + r.totalScoM, 0)
+  return items.map(r => ({ ...r, shareOfTotal: Math.round(r.totalScoM / totalSco * 1000) / 10 }))
+}
+
+// ---------------------------------------------------------------------------
+// SOP (Sulphate of Potash) and competitor data for Market Intelligence
+// ---------------------------------------------------------------------------
+export interface CompetitorCapacity {
+  producer: string
+  region: string
+  capacityMT: string
+  status: string
+  priceImpact: 'bullish' | 'bearish' | 'neutral'
+  note: string
+}
+
+export function getCompetitorData(): CompetitorCapacity[] {
+  return [
+    { producer: 'Belaruskali', region: 'Belarus', capacityMT: '~12M', status: 'Sanctions — reduced exports', priceImpact: 'bullish', note: '30-40% of capacity offline since 2022. Supports K+S European pricing.' },
+    { producer: 'Uralkali', region: 'Russia', capacityMT: '~13M', status: 'Limited Western access', priceImpact: 'bullish', note: 'Redirecting to India/China at discounts. Less competition in DACH.' },
+    { producer: 'Nutrien', region: 'Canada', capacityMT: '~27M', status: 'Expanding Vanscoy', priceImpact: 'bearish', note: '+2M MT by 2027. Watch for price pressure in North American exports.' },
+    { producer: 'ICL', region: 'Israel/EU', capacityMT: '~5M', status: 'Stable production', priceImpact: 'neutral', note: 'Direct competitor in European specialty fertilizers (SOP segment).' },
+    { producer: 'Arab Potash', region: 'Jordan', capacityMT: '~2.5M', status: 'At capacity', priceImpact: 'neutral', note: 'Primarily serves Indian and SE Asian markets.' },
+  ]
 }
 
 export function getMarketSignals(f: Filters): MarketSignal[] {

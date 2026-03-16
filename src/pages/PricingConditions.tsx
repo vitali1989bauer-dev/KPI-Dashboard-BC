@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { getPricingDeepDiveData, getConditionSpendingData } from '../data/mockData'
+import { getPricingDeepDiveData, getConditionSpendingData, getConditionBreakdown } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 import InfoTooltip from '../components/InfoTooltip'
 
@@ -17,6 +17,7 @@ export default function PricingConditions() {
   const { filters } = useFilters()
   const pricingData = getPricingDeepDiveData(filters)
   const conditionData = getConditionSpendingData(filters)
+  const conditionBreakdown = getConditionBreakdown(filters)
 
   // Pricing summary calculations
   const totalVol = pricingData.reduce((s, r) => s + r.volume, 0)
@@ -113,25 +114,79 @@ export default function PricingConditions() {
         </div>
       </div>
 
-      {/* Condition Spending Bar Chart */}
-      <div className="bg-card rounded-xl border border-border p-6">
-        <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wide">
-          Monthly Condition Spending (M&euro;) — Actual vs Last Year
-        </h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={conditionData} barGap={4}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
-            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
-            <YAxis tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M\u20AC`} />
-            <Tooltip
-              formatter={(value) => [`${Number(value).toFixed(1)} M\u20AC`]}
-              contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
-            />
-            <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="square" iconSize={10} />
-            <Bar dataKey="actual" name="Actual" fill="#173B7A" radius={[6, 6, 0, 0]} maxBarSize={36} />
-            <Bar dataKey="lastYear" name="Last Year" fill="#b8c2cf" radius={[6, 6, 0, 0]} maxBarSize={36} />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* Side-by-side: Condition Spending Chart + Breakdown Table */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* LEFT: Monthly Condition Spending Chart */}
+        <div className="bg-card rounded-xl border border-border p-6">
+          <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wide">
+            Monthly Condition Spending (M&euro;)
+          </h3>
+          <ResponsiveContainer width="100%" height={380}>
+            <BarChart data={conditionData} barGap={4}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M\u20AC`} />
+              <Tooltip
+                formatter={(value) => [`${Number(value).toFixed(1)} M\u20AC`]}
+                contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
+              />
+              <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="square" iconSize={10} />
+              <Bar dataKey="actual" name="Actual" fill="#173B7A" radius={[6, 6, 0, 0]} maxBarSize={36} />
+              <Bar dataKey="lastYear" name="Last Year" fill="#b8c2cf" radius={[6, 6, 0, 0]} maxBarSize={36} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* RIGHT: Condition Type Breakdown Table */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border">
+            <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+              Condition Spending by Type
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-bg-warm">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Type</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Actual (M&euro;)</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Budget</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Var %</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">% of Rev</th>
+                </tr>
+              </thead>
+              <tbody>
+                {conditionBreakdown.map((row, idx) => (
+                  <tr key={row.type} className={`border-t border-border hover:bg-bg-warm/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
+                    <td className="px-5 py-3 text-sm font-semibold text-text-primary">{row.type}</td>
+                    <td className="px-5 py-3 text-sm text-right font-mono text-text-primary">{row.actual.toFixed(1)}</td>
+                    <td className="px-5 py-3 text-sm text-right font-mono text-text-secondary">{row.budget.toFixed(1)}</td>
+                    <td className="px-5 py-3 text-sm text-right">
+                      <span className={`font-semibold ${row.variancePct > 0 ? 'text-negative' : 'text-positive'}`}>
+                        {row.variancePct > 0 ? '+' : ''}{row.variancePct.toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-sm text-right font-mono text-text-secondary">{row.shareOfRevenue.toFixed(1)}%</td>
+                  </tr>
+                ))}
+                <tr className="border-t-2 border-border bg-bg-warm/70">
+                  <td className="px-5 py-3 text-sm font-bold text-text-primary">Total</td>
+                  <td className="px-5 py-3 text-sm text-right font-mono font-bold">{conditionBreakdown.reduce((s, r) => s + r.actual, 0).toFixed(1)}</td>
+                  <td className="px-5 py-3 text-sm text-right font-mono font-bold">{conditionBreakdown.reduce((s, r) => s + r.budget, 0).toFixed(1)}</td>
+                  <td className="px-5 py-3 text-sm text-right">
+                    {(() => {
+                      const totA = conditionBreakdown.reduce((s, r) => s + r.actual, 0)
+                      const totB = conditionBreakdown.reduce((s, r) => s + r.budget, 0)
+                      const pct = ((totA - totB) / totB) * 100
+                      return <span className={`font-bold ${pct > 0 ? 'text-negative' : 'text-positive'}`}>{pct > 0 ? '+' : ''}{pct.toFixed(1)}%</span>
+                    })()}
+                  </td>
+                  <td className="px-5 py-3 text-sm text-right font-mono font-bold">{conditionBreakdown.reduce((s, r) => s + r.shareOfRevenue, 0).toFixed(1)}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   )

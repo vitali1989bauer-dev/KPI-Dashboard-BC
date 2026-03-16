@@ -11,7 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { getBenchmarkData, getInputCostData, getFxData, getMarketSignals } from '../data/mockData'
+import { getBenchmarkData, getInputCostData, getFxData, getMarketSignals, getCompetitorData } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 import InfoTooltip from '../components/InfoTooltip'
 
@@ -51,6 +51,7 @@ export default function MarketIntelligence() {
   const inputCostData = getInputCostData(filters)
   const fxData = getFxData(filters)
   const marketSignals = getMarketSignals(filters)
+  const competitorData = getCompetitorData()
 
   // Derive summary KPIs from the data
   const latestBenchmark = benchmarkData[benchmarkData.length - 1]
@@ -420,6 +421,51 @@ export default function MarketIntelligence() {
               </LineChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      </div>
+
+      {/* Competitor Capacity Overview */}
+      <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-border flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+            Global Potash Competitor Landscape
+          </h3>
+          <InfoTooltip text="Major global potash producers and their current capacity status. Supply disruptions (Belarus, Russia sanctions) support K+S pricing power in European markets." />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-bg-warm">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Producer</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Region</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Capacity (MT/yr)</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Status</th>
+                <th className="text-center px-5 py-3 text-xs font-semibold text-text-muted uppercase">Price Impact</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">K+S Implication</th>
+              </tr>
+            </thead>
+            <tbody>
+              {competitorData.map((comp, idx) => (
+                <tr key={comp.producer} className={`border-t border-border hover:bg-bg-warm/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
+                  <td className="px-5 py-3 text-sm font-semibold text-text-primary">{comp.producer}</td>
+                  <td className="px-5 py-3 text-sm text-text-secondary">{comp.region}</td>
+                  <td className="px-5 py-3 text-sm text-right font-mono text-text-primary">{comp.capacityMT}</td>
+                  <td className="px-5 py-3 text-sm text-text-secondary">{comp.status}</td>
+                  <td className="px-5 py-3 text-center">
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      comp.priceImpact === 'bullish' ? 'text-positive bg-positive/10' :
+                      comp.priceImpact === 'bearish' ? 'text-negative bg-negative/10' :
+                      'text-text-muted bg-bg-warm'
+                    }`}>
+                      {comp.priceImpact === 'bullish' ? <TrendingUp className="w-3 h-3" /> : comp.priceImpact === 'bearish' ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                      {comp.priceImpact}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-xs text-text-secondary leading-relaxed max-w-xs">{comp.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

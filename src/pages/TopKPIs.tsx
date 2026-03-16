@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { getTopKpis, getScoTrendData, type KpiCard } from '../data/mockData'
+import { getTopKpis, getScoTrendData, getProductScoContribution, type KpiCard } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 import InfoTooltip from '../components/InfoTooltip'
 
@@ -104,6 +104,7 @@ export default function TopKPIs() {
   const vsPl = kpis[2]
   const vsTgt = kpis[3]
   const trendData = useMemo(() => getScoTrendData(filters), [filters])
+  const productSco = useMemo(() => getProductScoContribution(filters), [filters])
 
   return (
     <div>
@@ -204,6 +205,54 @@ export default function TopKPIs() {
             />
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Product SCO Contribution */}
+      <div className="mt-6 bg-card rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+            Product SCO Contribution
+            <InfoTooltip text="Shows each product's contribution to total Standard Contribution. SCO/MT indicates profitability per ton, while Total SCO M€ reflects the absolute value impact. Potash specialties (Patentkali®, Epso Top®) have higher margins but lower volumes." />
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-bg-warm">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Product</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">SCO/MT (&euro;)</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Volume (MT)</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Total SCO (M&euro;)</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Share</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">vs LY</th>
+              </tr>
+            </thead>
+            <tbody>
+              {productSco.map((row, idx) => (
+                <tr key={row.product} className={`border-t border-border hover:bg-bg-warm/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
+                  <td className="px-5 py-3 text-sm font-semibold text-text-primary">{row.product}</td>
+                  <td className="px-5 py-3 text-sm text-right font-mono text-text-primary">{row.scoPerMT.toFixed(1)}</td>
+                  <td className="px-5 py-3 text-sm text-right font-mono text-text-secondary">{(row.volumeMT / 1000).toFixed(0)}k</td>
+                  <td className="px-5 py-3 text-sm text-right font-mono font-semibold text-text-primary">{row.totalScoM.toFixed(1)}</td>
+                  <td className="px-5 py-3 text-sm text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="w-16 h-1.5 rounded-full bg-bg-warm overflow-hidden">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, row.shareOfTotal)}%` }} />
+                      </div>
+                      <span className="font-mono text-text-secondary">{row.shareOfTotal.toFixed(1)}%</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-sm text-right">
+                    <span className={`inline-flex items-center gap-0.5 font-semibold ${row.vsLY >= 0 ? 'text-positive' : 'text-negative'}`}>
+                      {row.vsLY >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                      {row.vsLY >= 0 ? '+' : ''}{row.vsLY.toFixed(1)}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

@@ -94,9 +94,9 @@ export default function SCOEffect() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-5 gap-3 mb-6">
-        {rawData.slice(1, 6).map((item) => (
+      {/* Summary Cards — top 3 positive + top 2 negative effects */}
+      <div className="grid grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        {[...rawData.slice(1, -1)].sort((a, b) => Math.abs(b.value) - Math.abs(a.value)).slice(0, 5).map((item) => (
           <div
             key={item.name}
             className={`rounded-xl p-3.5 text-center border card-hover ${
@@ -118,10 +118,10 @@ export default function SCOEffect() {
       {/* Waterfall Chart */}
       <div className="bg-card rounded-xl border border-border p-6">
         <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wide">
-          SCO/MT Waterfall Bridge
+          SCO/MT Waterfall Bridge — {rawData.length - 2} Effect Decomposition
         </h3>
         <ResponsiveContainer width="100%" height={420}>
-          <BarChart data={data} barCategoryGap="20%">
+          <BarChart data={data} barCategoryGap="12%">
             <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
             <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
             <YAxis domain={[0, yMax]} tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}`} />
@@ -144,6 +144,58 @@ export default function SCOEffect() {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Effect Detail Table */}
+      <div className="mt-6 bg-card rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">Effect Detail</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-bg-warm">
+                <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase">Effect</th>
+                <th className="text-right px-6 py-3 text-xs font-semibold text-text-muted uppercase">Impact (€/MT)</th>
+                <th className="text-right px-6 py-3 text-xs font-semibold text-text-muted uppercase">Share of Total Δ</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase">Category</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rawData.slice(1, -1).map((item, idx) => {
+                const totalDelta = rawData[rawData.length - 1].value - rawData[0].value
+                const share = totalDelta !== 0 ? (item.value / Math.abs(totalDelta)) * 100 : 0
+                const category = item.name.includes('Price') || item.name.includes('Condition') ? 'Revenue' : item.name.includes('Energy') || item.name.includes('Raw') || item.name.includes('Logistics') ? 'Cost' : 'Mix / Other'
+                return (
+                  <tr key={item.name} className={`border-t border-border hover:bg-bg-warm/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
+                    <td className="px-6 py-3 text-sm font-semibold text-text-primary">{item.name.replace('\n', ' ')}</td>
+                    <td className="px-6 py-3 text-sm text-right">
+                      <span className={`font-mono font-semibold ${item.value >= 0 ? 'text-positive' : 'text-negative'}`}>
+                        {item.value >= 0 ? '+' : ''}{item.value.toFixed(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-sm text-right font-mono text-text-secondary">{share >= 0 ? '+' : ''}{share.toFixed(0)}%</td>
+                    <td className="px-6 py-3 text-sm text-text-secondary">
+                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        category === 'Revenue' ? 'bg-primary/10 text-primary' : category === 'Cost' ? 'bg-warning/10 text-warning' : 'bg-bg-warm text-text-muted'
+                      }`}>{category}</span>
+                    </td>
+                  </tr>
+                )
+              })}
+              <tr className="border-t-2 border-border bg-bg-warm/70 font-bold">
+                <td className="px-6 py-3 text-sm font-bold text-text-primary">Net Effect</td>
+                <td className="px-6 py-3 text-sm text-right">
+                  <span className={`font-mono font-bold ${(rawData[rawData.length - 1].value - rawData[0].value) >= 0 ? 'text-positive' : 'text-negative'}`}>
+                    {(rawData[rawData.length - 1].value - rawData[0].value) >= 0 ? '+' : ''}{(rawData[rawData.length - 1].value - rawData[0].value).toFixed(1)}
+                  </span>
+                </td>
+                <td className="px-6 py-3 text-sm text-right font-mono font-bold">100%</td>
+                <td className="px-6 py-3 text-sm text-text-secondary" />
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

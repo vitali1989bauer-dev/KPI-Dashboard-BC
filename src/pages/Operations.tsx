@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { getVolumeDeepDiveData, getCostDeepDiveData } from '../data/mockData'
+import { getVolumeDeepDiveData, getCostDeepDiveData, getProductionSites } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 import InfoTooltip from '../components/InfoTooltip'
 
@@ -19,6 +19,7 @@ export default function Operations() {
   const { filters } = useFilters()
   const volumeData = getVolumeDeepDiveData(filters)
   const costData = getCostDeepDiveData(filters)
+  const productionSites = getProductionSites(filters)
 
   // Volume summary
   const totalActualVol = volumeData.reduce((sum, d) => sum + d.actual, 0)
@@ -116,6 +117,68 @@ export default function Operations() {
               <Bar dataKey="budget" name="Budget" fill="#b8c2cf" radius={[0, 6, 6, 0]} maxBarSize={24} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Production Site Performance */}
+      <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-border">
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+            Production Site Performance
+            <InfoTooltip text="Key K+S production sites showing capacity utilization, output volumes, and cost efficiency. Bethune (Canada) is the newest potash mine with ramp-up phase cost premiums." />
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-bg-warm">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Site</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Location</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Product</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Utilization</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Output (MT)</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Cost/MT</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">vs Budget</th>
+                <th className="text-center px-5 py-3 text-xs font-semibold text-text-muted uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {productionSites.map((site, idx) => {
+                const statusColor = site.status === 'on-track' ? 'text-positive bg-positive/10' : site.status === 'attention' ? 'text-warning bg-warning/10' : 'text-negative bg-negative/10'
+                const statusLabel = site.status === 'on-track' ? 'On Track' : site.status === 'attention' ? 'Attention' : 'Critical'
+                return (
+                  <tr key={site.site} className={`border-t border-border hover:bg-bg-warm/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
+                    <td className="px-5 py-3 text-sm font-semibold text-text-primary">{site.site}</td>
+                    <td className="px-5 py-3 text-sm text-text-secondary">{site.location}</td>
+                    <td className="px-5 py-3 text-sm text-text-secondary">{site.product}</td>
+                    <td className="px-5 py-3 text-sm text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="w-16 h-1.5 rounded-full bg-bg-warm overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${site.utilizationPct >= 85 ? 'bg-positive' : site.utilizationPct >= 75 ? 'bg-warning' : 'bg-negative'}`}
+                            style={{ width: `${Math.min(100, site.utilizationPct)}%` }}
+                          />
+                        </div>
+                        <span className="font-mono font-semibold text-text-primary">{site.utilizationPct.toFixed(1)}%</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3 text-sm text-right font-mono text-text-primary">{(site.outputMT / 1000).toFixed(0)}k</td>
+                    <td className="px-5 py-3 text-sm text-right font-mono text-text-primary">&euro;{site.costPerMT.toFixed(1)}</td>
+                    <td className="px-5 py-3 text-sm text-right">
+                      <span className={`font-semibold ${site.costVsBudget > 0 ? 'text-negative' : 'text-positive'}`}>
+                        {site.costVsBudget > 0 ? '+' : ''}{site.costVsBudget.toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>
+                        {statusLabel}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
 
