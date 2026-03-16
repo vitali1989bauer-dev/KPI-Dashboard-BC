@@ -56,16 +56,16 @@ export default function CostDeepDive() {
         <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wide">Cost by Category (M&euro;)</h3>
         <ResponsiveContainer width="100%" height={350}>
           <BarChart data={data} layout="vertical" barGap={4}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e8dfd4" horizontal={false} />
-            <XAxis type="number" tick={{ fontSize: 12, fill: '#6b5c52' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M€`} />
-            <YAxis type="category" dataKey="category" tick={{ fontSize: 12, fill: '#6b5c52' }} axisLine={false} tickLine={false} width={120} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#dde1e8" horizontal={false} />
+            <XAxis type="number" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M€`} />
+            <YAxis type="category" dataKey="category" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} width={120} />
             <Tooltip
               formatter={(value) => [`${Number(value).toFixed(1)} M€`]}
-              contentStyle={{ borderRadius: '10px', border: '1px solid #e8dfd4', boxShadow: '0 4px 16px rgba(44,24,16,0.08)', fontSize: '13px' }}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #dde1e8', boxShadow: '0 4px 16px rgba(26,31,46,0.08)', fontSize: '13px' }}
             />
             <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="square" iconSize={10} />
-            <Bar dataKey="actual" name="Actual" fill="#6b3a2a" radius={[0, 6, 6, 0]} maxBarSize={24} />
-            <Bar dataKey="budget" name="Budget" fill="#d4c4b0" radius={[0, 6, 6, 0]} maxBarSize={24} />
+            <Bar dataKey="actual" name="Actual" fill="#1a1f2e" radius={[0, 6, 6, 0]} maxBarSize={24} />
+            <Bar dataKey="budget" name="Budget" fill="#c5cbd6" radius={[0, 6, 6, 0]} maxBarSize={24} />
           </BarChart>
         </ResponsiveContainer>
       </div>

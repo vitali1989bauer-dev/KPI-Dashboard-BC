@@ -21,9 +21,9 @@ interface WaterfallDataPoint {
   fill: string
 }
 
-const TOTAL_COLOR = '#6b3a2a'
-const POSITIVE_COLOR = '#2d8659'
-const NEGATIVE_COLOR = '#c43e3e'
+const TOTAL_COLOR = '#1a1f2e'
+const POSITIVE_COLOR = '#00965e'
+const NEGATIVE_COLOR = '#d41e25'
 
 function buildWaterfallData(f: ReturnType<typeof useFilters>['filters']): WaterfallDataPoint[] {
   const raw = getScoWaterfallData(f)
@@ -108,9 +108,9 @@ export default function SCOEffect() {
         </h3>
         <ResponsiveContainer width="100%" height={420}>
           <BarChart data={data} barCategoryGap="20%">
-            <CartesianGrid strokeDasharray="3 3" stroke="#e8dfd4" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b5c52' }} axisLine={{ stroke: '#e8dfd4' }} tickLine={false} />
-            <YAxis domain={[0, yMax]} tick={{ fontSize: 11, fill: '#6b5c52' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}`} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#dde1e8" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={{ stroke: '#dde1e8' }} tickLine={false} />
+            <YAxis domain={[0, yMax]} tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}`} />
             <Tooltip
               formatter={(_value, _name, props) => {
                 const p = (props as { payload: WaterfallDataPoint }).payload
@@ -119,9 +119,9 @@ export default function SCOEffect() {
                   p.fill === TOTAL_COLOR ? 'Total' : 'Effect',
                 ]
               }}
-              contentStyle={{ borderRadius: '10px', border: '1px solid #e8dfd4', boxShadow: '0 4px 16px rgba(44,24,16,0.08)', fontSize: '13px' }}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #dde1e8', boxShadow: '0 4px 16px rgba(26,31,46,0.08)', fontSize: '13px' }}
             />
-            <ReferenceLine y={0} stroke="#e8dfd4" />
+            <ReferenceLine y={0} stroke="#dde1e8" />
             <Bar dataKey="base" stackId="waterfall" fill="transparent" radius={0} />
             <Bar dataKey="value" stackId="waterfall" radius={[6, 6, 0, 0]} label={renderLabel}>
               {data.map((entry, idx) => (

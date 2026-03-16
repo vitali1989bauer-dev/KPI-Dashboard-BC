@@ -242,3 +242,111 @@ export function getCostDeepDiveData(f: Filters): CostItem[] {
     return { category: row.category, actual, budget, variance, variancePct }
   })
 }
+
+// ---------------------------------------------------------------------------
+// Target & Limit Prices — by customer group and product
+// ---------------------------------------------------------------------------
+export interface TargetPriceRow {
+  customerGroup: string
+  product: string
+  targetPrice: number
+  limitPrice: number
+  actualPrice: number
+  volumeMT: number
+}
+
+const customerGroups = ['BayWa', 'AGRAVIS', 'Nutrien', 'Yara', 'EuroChem']
+const productLines = ['Potash (MOP)', 'Kieserite', 'Fert. Specialties', 'De-icing Salt', 'Industrial Salt']
+
+const basePrices: Record<string, { target: number; limit: number; actual: number; vol: number }> = {
+  'Potash (MOP)': { target: 320, limit: 285, actual: 312, vol: 48000 },
+  'Kieserite': { target: 195, limit: 170, actual: 187, vol: 25000 },
+  'Fert. Specialties': { target: 440, limit: 395, actual: 426, vol: 13000 },
+  'De-icing Salt': { target: 52, limit: 42, actual: 48, vol: 178000 },
+  'Industrial Salt': { target: 68, limit: 55, actual: 62, vol: 104000 },
+}
+
+// Customer-specific multipliers (each customer has slightly different pricing)
+const custMul: Record<string, number> = {
+  'BayWa': 1.0,
+  'AGRAVIS': 0.97,
+  'Nutrien': 1.04,
+  'Yara': 1.02,
+  'EuroChem': 0.95,
+}
+
+export function getTargetPriceData(f: Filters): TargetPriceRow[] {
+  const rows: TargetPriceRow[] = []
+
+  const custFilter = f.customer
+  const prodFilter = f.product
+  const custs = custFilter === 'All Customers' ? customerGroups : customerGroups.filter(c => c === custFilter)
+  const prods = prodFilter === 'All Products'
+    ? productLines
+    : productLines.filter(p => p.toLowerCase().includes(prodFilter.toLowerCase().slice(0, 6)))
+
+  const activeCusts = custs.length > 0 ? custs : customerGroups
+  const activeProds = prods.length > 0 ? prods : productLines
+
+  for (const cust of activeCusts) {
+    for (const prod of activeProds) {
+      const bp = basePrices[prod] ?? basePrices['Potash (MOP)']
+      const cm = custMul[cust] ?? 1.0
+      const i = activeCusts.indexOf(cust) * 10 + activeProds.indexOf(prod)
+
+      rows.push({
+        customerGroup: cust,
+        product: prod,
+        targetPrice: vary(bp.target * cm, f, 200 + i),
+        limitPrice: vary(bp.limit * cm, f, 250 + i),
+        actualPrice: vary(bp.actual * cm, f, 300 + i),
+        volumeMT: Math.round(vary(bp.vol / activeCusts.length, f, 350 + i)),
+      })
+    }
+  }
+
+  return rows
+}
+
+// Summary for Target & Limit page
+export interface TargetPriceSummary {
+  totalRows: number
+  aboveTarget: number
+  inCorridor: number
+  belowLimit: number
+  avgRealization: number
+  totalVolume: number
+  revenueAtRisk: number
+}
+
+export function getTargetPriceSummary(rows: TargetPriceRow[]): TargetPriceSummary {
+  let aboveTarget = 0
+  let inCorridor = 0
+  let belowLimit = 0
+  let totalVol = 0
+  let revenueAtRisk = 0
+
+  for (const r of rows) {
+    totalVol += r.volumeMT
+    if (r.actualPrice >= r.targetPrice) aboveTarget++
+    else if (r.actualPrice >= r.limitPrice) inCorridor++
+    else {
+      belowLimit++
+      revenueAtRisk += (r.limitPrice - r.actualPrice) * r.volumeMT / 1_000_000
+    }
+  }
+
+  const avgRealization = rows.length > 0
+    ? rows.reduce((s, r) => s + (r.actualPrice / r.targetPrice) * 100, 0) / rows.length
+    : 0
+
+  return {
+    totalRows: rows.length,
+    aboveTarget,
+    inCorridor,
+    belowLimit,
+    avgRealization: Math.round(avgRealization * 10) / 10,
+    totalVolume: totalVol,
+    revenueAtRisk: Math.round(revenueAtRisk * 10) / 10,
+  }
+}

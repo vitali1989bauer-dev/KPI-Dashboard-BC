@@ -8,6 +8,7 @@ import ConditionSpending from './pages/ConditionSpending'
 import PricingDeepDive from './pages/PricingDeepDive'
 import VolumeDeepDive from './pages/VolumeDeepDive'
 import CostDeepDive from './pages/CostDeepDive'
+import TargetPrices from './pages/TargetPrices'
 import OtherDeepDive from './pages/OtherDeepDive'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/sco-effect" element={<SCOEffect />} />
               <Route path="/condition-spending" element={<ConditionSpending />} />
               <Route path="/pricing-deep-dive" element={<PricingDeepDive />} />
+              <Route path="/target-prices" element={<TargetPrices />} />
               <Route path="/volume-deep-dive" element={<VolumeDeepDive />} />
               <Route path="/cost-deep-dive" element={<CostDeepDive />} />
               <Route path="/other-deep-dive" element={<OtherDeepDive />} />

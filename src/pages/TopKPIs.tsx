@@ -92,13 +92,13 @@ export default function TopKPIs() {
 
       {/* Main KPI - Actual SCO/MT */}
       <div className="mb-6">
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#3a1f14] via-primary to-[#4a2a1a] rounded-2xl p-7 text-white shadow-lg shadow-primary/15">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gold/10 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#1a1f2e] via-[#252b3d] to-[#1a1f2e] rounded-2xl p-7 text-white shadow-lg shadow-sidebar/25 border border-white/5">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/8 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/8 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
 
           <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-accent-light/70 mb-2">Actual SCO/MT</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary-light/80 mb-2">Actual SCO/MT</p>
               <p className="text-5xl font-bold tracking-tight">{(hero.value as number).toFixed(1)}</p>
               <p className="text-sm text-white/50 mt-1.5 font-medium">&euro;/MT &middot; {filters.timePeriod}</p>
             </div>

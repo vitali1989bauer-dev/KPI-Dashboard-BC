@@ -64,16 +64,16 @@ export default function ConditionSpending() {
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={data} barGap={4}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e8dfd4" vertical={false} />
-            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6b5c52' }} axisLine={{ stroke: '#e8dfd4' }} tickLine={false} />
-            <YAxis tick={{ fontSize: 12, fill: '#6b5c52' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M€`} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#dde1e8" vertical={false} />
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#dde1e8' }} tickLine={false} />
+            <YAxis tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M€`} />
             <Tooltip
               formatter={(value) => [`${Number(value).toFixed(1)} M€`]}
-              contentStyle={{ borderRadius: '10px', border: '1px solid #e8dfd4', boxShadow: '0 4px 16px rgba(44,24,16,0.08)', fontSize: '13px' }}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #dde1e8', boxShadow: '0 4px 16px rgba(26,31,46,0.08)', fontSize: '13px' }}
             />
             <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="square" iconSize={10} />
-            <Bar dataKey="actual" name="Actual" fill="#6b3a2a" radius={[6, 6, 0, 0]} maxBarSize={36} />
-            <Bar dataKey="lastYear" name="Last Year" fill="#d4c4b0" radius={[6, 6, 0, 0]} maxBarSize={36} />
+            <Bar dataKey="actual" name="Actual" fill="#d41e25" radius={[6, 6, 0, 0]} maxBarSize={36} />
+            <Bar dataKey="lastYear" name="Last Year" fill="#c5cbd6" radius={[6, 6, 0, 0]} maxBarSize={36} />
           </BarChart>
         </ResponsiveContainer>
       </div>

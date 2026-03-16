@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, SlidersHorizontal, X } from 'lucide-react'
 import {
   regions,
   countryClusters,
@@ -23,16 +23,28 @@ function Dropdown({
   onChange: (v: string) => void
 }) {
   const [open, setOpen] = useState(false)
+  const isFiltered = !value.startsWith('All ')
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-bg border border-border rounded-lg text-sm text-text-secondary hover:border-accent/40 hover:bg-white transition-all cursor-pointer"
+        className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-sm transition-all cursor-pointer ${
+          isFiltered
+            ? 'bg-primary/5 border-primary/25 text-primary hover:bg-primary/10'
+            : 'bg-bg border-border text-text-secondary hover:border-primary/30 hover:bg-white'
+        }`}
       >
         <span className="text-text-muted text-[11px] font-semibold uppercase tracking-wide">{label}</span>
-        <span className="font-medium max-w-[120px] truncate text-text-primary">{value}</span>
-        <ChevronDown className={`w-3.5 h-3.5 text-text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className={`font-medium max-w-[120px] truncate ${isFiltered ? 'text-primary' : 'text-text-primary'}`}>{value.replace('All ', '')}</span>
+        {isFiltered ? (
+          <X
+            className="w-3.5 h-3.5 text-primary/60 hover:text-primary"
+            onClick={(e) => { e.stopPropagation(); onChange(options[0]) }}
+          />
+        ) : (
+          <ChevronDown className={`w-3.5 h-3.5 text-text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+        )}
       </button>
       {open && (
         <>
@@ -46,7 +58,7 @@ function Dropdown({
                   setOpen(false)
                 }}
                 className={`w-full text-left px-3.5 py-2 text-sm hover:bg-bg-warm transition-colors cursor-pointer ${
-                  value === opt ? 'text-primary font-semibold bg-accent/8' : 'text-text-secondary'
+                  value === opt ? 'text-primary font-semibold bg-primary/5' : 'text-text-secondary'
                 }`}
               >
                 {opt}
@@ -70,6 +82,8 @@ export default function FilterBar() {
     { label: 'Product', key: 'product', options: productGroups },
   ]
 
+  const activeCount = dropdowns.filter(d => !filters[d.key].startsWith('All ')).length
+
   return (
     <div className="bg-white border-b border-border">
       {/* Time period tabs */}
@@ -91,7 +105,14 @@ export default function FilterBar() {
 
       {/* Filter dropdowns */}
       <div className="px-6 py-3 flex items-center gap-2 flex-wrap">
-        <SlidersHorizontal className="w-4 h-4 text-accent mr-1" />
+        <div className="flex items-center gap-1.5 mr-1">
+          <SlidersHorizontal className="w-4 h-4 text-primary/60" />
+          {activeCount > 0 && (
+            <span className="text-[10px] font-bold text-white bg-primary rounded-full w-4.5 h-4.5 flex items-center justify-center leading-none px-1.5 py-0.5">
+              {activeCount}
+            </span>
+          )}
+        </div>
         {dropdowns.map((d) => (
           <Dropdown
             key={d.key}
