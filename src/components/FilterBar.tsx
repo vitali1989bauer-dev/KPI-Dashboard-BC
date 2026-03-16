@@ -108,11 +108,11 @@ export default function FilterBar() {
   const { filters, setFilter } = useFilters()
 
   const dropdowns: { label: string; key: keyof Filters; options: string[] }[] = [
+    { label: 'Archetype', key: 'archetype', options: pricingArchetypes },
     { label: 'Region', key: 'region', options: regions },
     { label: 'Cluster', key: 'cluster', options: countryClusters },
     { label: 'Segment', key: 'segment', options: customerSegments },
     { label: 'Customer', key: 'customer', options: customers },
-    { label: 'Archetype', key: 'archetype', options: pricingArchetypes },
     { label: 'Product', key: 'product', options: productGroups },
   ]
 
