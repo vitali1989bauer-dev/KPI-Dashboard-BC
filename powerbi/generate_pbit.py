@@ -647,9 +647,25 @@ def build_report_layout():
 # OPC Package / .pbit assembly
 # ---------------------------------------------------------------------------
 
-CONTENT_TYPES = '<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" /><Override PartName="/DataModelSchema" ContentType="" /><Override PartName="/Report/Layout" ContentType="" /><Override PartName="/DiagramLayout" ContentType="" /><Override PartName="/Settings" ContentType="" /><Override PartName="/Metadata" ContentType="" /><Override PartName="/Version" ContentType="" /></Types>'
+CONTENT_TYPES = '\r\n'.join([
+    '<?xml version="1.0" encoding="utf-8"?>',
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">',
+    '  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
+    '  <Override PartName="/Version" ContentType="text/plain" />',
+    '  <Override PartName="/DataModelSchema" ContentType="application/json" />',
+    '  <Override PartName="/Report/Layout" ContentType="application/json" />',
+    '  <Override PartName="/DiagramLayout" ContentType="application/json" />',
+    '  <Override PartName="/Settings" ContentType="application/json" />',
+    '  <Override PartName="/Metadata" ContentType="application/json" />',
+    '  <Override PartName="/SecurityBindings" ContentType="application/octet-stream" />',
+    '</Types>',
+])
 
-RELS = '<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Type="http://schemas.microsoft.com/DataModelSchema" Target="/DataModelSchema" Id="R1" /><Relationship Type="http://schemas.microsoft.com/ReportLayout" Target="/Report/Layout" Id="R2" /><Relationship Type="http://schemas.microsoft.com/DiagramLayout" Target="/DiagramLayout" Id="R3" /><Relationship Type="http://schemas.microsoft.com/Settings" Target="/Settings" Id="R4" /><Relationship Type="http://schemas.microsoft.com/Metadata" Target="/Metadata" Id="R5" /><Relationship Type="http://schemas.microsoft.com/Version" Target="/Version" Id="R6" /></Relationships>'
+RELS = '\r\n'.join([
+    '<?xml version="1.0" encoding="utf-8"?>',
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+    '</Relationships>',
+])
 
 
 def generate():
@@ -668,14 +684,14 @@ def generate():
     print(f"Packaging {OUTPUT}...")
     with zipfile.ZipFile(OUTPUT, "w", zipfile.ZIP_DEFLATED) as z:
         # OPC required files
-        z.writestr("[Content_Types].xml", CONTENT_TYPES)
-        z.writestr("_rels/.rels", RELS)
+        z.writestr("[Content_Types].xml", CONTENT_TYPES.encode("utf-8"))
+        z.writestr("_rels/.rels", RELS.encode("utf-8"))
 
-        # SecurityBindings (empty — required by Power BI even for unencrypted templates)
-        z.writestr("SecurityBindings", b"")
+        # SecurityBindings — minimal non-empty binary (required by PBI)
+        z.writestr("SecurityBindings", b"\x00\x00\x00\x00")
 
-        # Version — plain ASCII (no BOM, no UTF-16)
-        z.writestr("Version", b"2.0")
+        # Version — pure ASCII, no encoding prefix whatsoever
+        z.writestr("Version", "2.0".encode("ascii"))
 
         # Core content — UTF-16 LE BOM
         z.writestr("DataModelSchema", encode_utf16le(model_json))
