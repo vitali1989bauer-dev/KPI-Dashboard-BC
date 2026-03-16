@@ -674,8 +674,8 @@ def generate():
         # SecurityBindings (empty — required by Power BI even for unencrypted templates)
         z.writestr("SecurityBindings", b"")
 
-        # Version — plain text
-        z.writestr("Version", encode_utf16le("2.0"))
+        # Version — plain ASCII (no BOM, no UTF-16)
+        z.writestr("Version", b"2.0")
 
         # Core content — UTF-16 LE BOM
         z.writestr("DataModelSchema", encode_utf16le(model_json))
