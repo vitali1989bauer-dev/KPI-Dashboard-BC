@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, SlidersHorizontal, X, FileText, Check } from 'lucide-react'
 import {
   regions,
   countryClusters,
@@ -71,6 +71,38 @@ function Dropdown({
   )
 }
 
+function ReportButton() {
+  const [state, setState] = useState<'idle' | 'generating' | 'done'>('idle')
+
+  function handleClick() {
+    setState('generating')
+    setTimeout(() => setState('done'), 2200)
+    setTimeout(() => setState('idle'), 4500)
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={state === 'generating'}
+      className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer border ${
+        state === 'done'
+          ? 'bg-positive/10 border-positive/30 text-positive'
+          : state === 'generating'
+            ? 'bg-primary/5 border-primary/20 text-primary animate-pulse'
+            : 'bg-primary text-white border-primary hover:bg-primary-light shadow-sm'
+      }`}
+    >
+      {state === 'done' ? (
+        <><Check className="w-4 h-4" /> Report Ready</>
+      ) : state === 'generating' ? (
+        <><FileText className="w-4 h-4" /> Generating...</>
+      ) : (
+        <><FileText className="w-4 h-4" /> Create Mgmt Report</>
+      )}
+    </button>
+  )
+}
+
 export default function FilterBar() {
   const { filters, setFilter } = useFilters()
 
@@ -86,7 +118,7 @@ export default function FilterBar() {
 
   return (
     <div className="bg-white border-b border-border">
-      {/* Time period tabs */}
+      {/* Time period tabs + Report button */}
       <div className="px-6 pt-3 flex items-center gap-0.5">
         {timePeriods.map((period) => (
           <button
@@ -101,6 +133,9 @@ export default function FilterBar() {
             {period}
           </button>
         ))}
+        <div className="ml-auto">
+          <ReportButton />
+        </div>
       </div>
 
       {/* Filter dropdowns */}

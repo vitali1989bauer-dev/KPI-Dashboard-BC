@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  /* K+S Corporate Identity – Red primary, green agriculture accent */
-  --color-sidebar: #1a1f2e;
-  --color-sidebar-hover: #252b3d;
-  --color-sidebar-active: #111520;
-  --color-primary: #d41e25;
-  --color-primary-light: #e8484e;
-  --color-accent: #00965e;
-  --color-accent-light: #3db87f;
+  /* K+S Corporate – Blue (#173B7A) & Grey (#667885) */
+  --color-sidebar: #0f2654;
+  --color-sidebar-hover: #1a3468;
+  --color-sidebar-active: #0a1c40;
+  --color-primary: #173B7A;
+  --color-primary-light: #2a5199;
+  --color-accent: #667885;
+  --color-accent-light: #8a9baa;
   --color-gold: #e8a317;
   --color-gold-light: #f0c04a;
-  --color-positive: #00965e;
-  --color-negative: #d41e25;
-  --color-warning: #e8a317;
+  --color-positive: #1a8754;
+  --color-negative: #c43e3e;
+  --color-warning: #d49a1a;
   --color-card: #ffffff;
-  --color-bg: #f5f6f8;
-  --color-bg-warm: #edf0f4;
-  --color-border: #dde1e8;
-  --color-border-hover: #c5cbd6;
-  --color-text-primary: #1a1f2e;
+  --color-bg: #f4f6f8;
+  --color-bg-warm: #ebeef2;
+  --color-border: #d5dbe3;
+  --color-border-hover: #b8c2cf;
+  --color-text-primary: #1a2332;
   --color-text-secondary: #4a5568;
-  --color-text-muted: #8494a7;
+  --color-text-muted: #667885;
 }
 
 @layer base {
@@ -47,12 +47,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #c5cbd6;
+    background: #b8c2cf;
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #8494a7;
+    background: #667885;
   }
 }
 
@@ -61,7 +61,7 @@
     transition: all 0.25s ease;
   }
   .card-hover:hover {
-    box-shadow: 0 8px 30px rgba(26, 31, 46, 0.08), 0 2px 8px rgba(26, 31, 46, 0.04);
+    box-shadow: 0 8px 30px rgba(23, 59, 122, 0.06), 0 2px 8px rgba(23, 59, 122, 0.03);
     border-color: var(--color-border-hover);
     transform: translateY(-1px);
   }

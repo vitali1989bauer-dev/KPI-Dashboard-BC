@@ -115,18 +115,18 @@ export default function TargetPrices() {
         </h3>
         <ResponsiveContainer width="100%" height={340}>
           <BarChart data={chartData} barGap={2}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#dde1e8" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#dde1e8' }} tickLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
             <YAxis tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `€${v}`} />
             <Tooltip
               formatter={(value) => [`€ ${Number(value).toFixed(1)} /MT`]}
-              contentStyle={{ borderRadius: '10px', border: '1px solid #dde1e8', boxShadow: '0 4px 16px rgba(26,31,46,0.08)', fontSize: '13px' }}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
             />
             <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="square" iconSize={10} />
-            <ReferenceLine y={overallAvgTarget} stroke="#d41e25" strokeDasharray="6 3" label={{ value: 'Avg Target', position: 'right', fontSize: 11, fill: '#d41e25' }} />
-            <Bar dataKey="Target Price" fill="#1a1f2e" radius={[4, 4, 0, 0]} maxBarSize={32} />
-            <Bar dataKey="Actual Price" fill="#00965e" radius={[4, 4, 0, 0]} maxBarSize={32} />
-            <Bar dataKey="Limit Price" fill="#e8a317" radius={[4, 4, 0, 0]} maxBarSize={32} />
+            <ReferenceLine y={overallAvgTarget} stroke="#c43e3e" strokeDasharray="6 3" label={{ value: 'Avg Target', position: 'right', fontSize: 11, fill: '#c43e3e' }} />
+            <Bar dataKey="Target Price" fill="#173B7A" radius={[4, 4, 0, 0]} maxBarSize={32} />
+            <Bar dataKey="Actual Price" fill="#1a8754" radius={[4, 4, 0, 0]} maxBarSize={32} />
+            <Bar dataKey="Limit Price" fill="#d49a1a" radius={[4, 4, 0, 0]} maxBarSize={32} />
           </BarChart>
         </ResponsiveContainer>
       </div>

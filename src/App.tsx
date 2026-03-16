@@ -9,6 +9,8 @@ import PricingDeepDive from './pages/PricingDeepDive'
 import VolumeDeepDive from './pages/VolumeDeepDive'
 import CostDeepDive from './pages/CostDeepDive'
 import TargetPrices from './pages/TargetPrices'
+import ScatterAnalysis from './pages/ScatterAnalysis'
+import DataConnections from './pages/DataConnections'
 import OtherDeepDive from './pages/OtherDeepDive'
 
 export default function App() {
@@ -25,8 +27,10 @@ export default function App() {
               <Route path="/condition-spending" element={<ConditionSpending />} />
               <Route path="/pricing-deep-dive" element={<PricingDeepDive />} />
               <Route path="/target-prices" element={<TargetPrices />} />
+              <Route path="/scatter-analysis" element={<ScatterAnalysis />} />
               <Route path="/volume-deep-dive" element={<VolumeDeepDive />} />
               <Route path="/cost-deep-dive" element={<CostDeepDive />} />
+              <Route path="/data-connections" element={<DataConnections />} />
               <Route path="/other-deep-dive" element={<OtherDeepDive />} />
             </Routes>
           </main>

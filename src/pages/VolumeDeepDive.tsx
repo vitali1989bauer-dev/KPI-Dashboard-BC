@@ -51,17 +51,17 @@ export default function VolumeDeepDive() {
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#dde1e8" vertical={false} />
-            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#dde1e8' }} tickLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
             <YAxis tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
             <Tooltip
               formatter={(value) => [`${Number(value).toLocaleString()} MT`]}
-              contentStyle={{ borderRadius: '10px', border: '1px solid #dde1e8', boxShadow: '0 4px 16px rgba(26,31,46,0.08)', fontSize: '13px' }}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
             />
             <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="circle" iconSize={8} />
-            <Line type="monotone" dataKey="actual" name="Actual" stroke="#d41e25" strokeWidth={2.5} dot={{ r: 4, fill: '#d41e25' }} activeDot={{ r: 6 }} />
-            <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#00965e" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3, fill: '#00965e' }} />
-            <Line type="monotone" dataKey="lastYear" name="Last Year" stroke="#8494a7" strokeWidth={1.5} dot={{ r: 3, fill: '#8494a7' }} />
+            <Line type="monotone" dataKey="actual" name="Actual" stroke="#173B7A" strokeWidth={2.5} dot={{ r: 4, fill: '#173B7A' }} activeDot={{ r: 6 }} />
+            <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#1a8754" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3, fill: '#1a8754' }} />
+            <Line type="monotone" dataKey="lastYear" name="Last Year" stroke="#667885" strokeWidth={1.5} dot={{ r: 3, fill: '#667885' }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

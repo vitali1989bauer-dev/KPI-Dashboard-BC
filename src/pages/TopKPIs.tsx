@@ -1,8 +1,20 @@
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { getTopKpis, type KpiCard } from '../data/mockData'
 import { useFilters } from '../FilterContext'
+import InfoTooltip from '../components/InfoTooltip'
 
-function KpiCardComponent({ kpi }: { kpi: KpiCard }) {
+const kpiTooltips: Record<string, string> = {
+  'actual-sco': 'Standard Contribution / Metric Ton — the primary profitability measure per unit sold, after deducting variable costs and condition spending from net revenue.',
+  'vs-ly': 'Change in SCO/MT compared to the same period last year. Positive = margin improvement year-over-year.',
+  'vs-pl': 'Deviation from the planned (budgeted) SCO/MT. Shows how actual profitability compares to the annual operating plan.',
+  'vs-target': 'Delta to the stretch target SCO/MT set by management. A positive value means the target is being exceeded.',
+  'volume-forecast': 'Percentage of forecasted volume actually delivered. Measures supply chain reliability and demand planning accuracy.',
+  'market-price-index': 'Composite index of global potash spot prices (CFR standard grades). Base 100 = prior year average. Source: Argus FMB.',
+  'position-valuation': 'Mark-to-market value of open potash purchase positions and input commodity hedges relative to current spot prices.',
+  'revenue-leakage': 'Total value of conditions, rebates, discounts, and logistics allowances granted to customers in the selected period.',
+}
+
+function KpiCardComponent({ kpi, tooltip }: { kpi: KpiCard; tooltip?: string }) {
   const statusColors = {
     positive: 'text-positive',
     negative: 'text-negative',
@@ -32,6 +44,7 @@ function KpiCardComponent({ kpi }: { kpi: KpiCard }) {
       <div className="flex items-start justify-between mb-3">
         <h3 className="text-[13px] font-semibold text-text-secondary leading-tight pr-2">
           {kpi.title}
+          {tooltip && <InfoTooltip text={tooltip} />}
         </h3>
         <div className={`p-1.5 rounded-lg ${statusBg[kpi.status]}`}>
           <StatusIcon className={`w-4 h-4 ${statusColors[kpi.status]}`} />
@@ -92,13 +105,16 @@ export default function TopKPIs() {
 
       {/* Main KPI - Actual SCO/MT */}
       <div className="mb-6">
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#1a1f2e] via-[#252b3d] to-[#1a1f2e] rounded-2xl p-7 text-white shadow-lg shadow-sidebar/25 border border-white/5">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/8 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#0f2654] via-[#173B7A] to-[#0f2654] rounded-2xl p-7 text-white shadow-lg shadow-primary/20 border border-white/5">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/8 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
 
           <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary-light/80 mb-2">Actual SCO/MT</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary-light/80 mb-2">
+                Actual SCO/MT
+                <InfoTooltip text="Standard Contribution (SCO) per Metric Ton — the key profitability KPI. Calculated as net revenue minus variable production costs, logistics, and condition spending, divided by volume sold." />
+              </p>
               <p className="text-5xl font-bold tracking-tight">{(hero.value as number).toFixed(1)}</p>
               <p className="text-sm text-white/50 mt-1.5 font-medium">&euro;/MT &middot; {filters.timePeriod}</p>
             </div>
@@ -126,7 +142,7 @@ export default function TopKPIs() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.slice(4).map((kpi) => (
-          <KpiCardComponent key={kpi.id} kpi={kpi} />
+          <KpiCardComponent key={kpi.id} kpi={kpi} tooltip={kpiTooltips[kpi.id]} />
         ))}
       </div>
     </div>

@@ -9,6 +9,8 @@ import {
   LayoutDashboard,
   Sprout,
   Target,
+  Crosshair,
+  Database,
 } from 'lucide-react'
 
 const navGroups = [
@@ -30,16 +32,23 @@ const navGroups = [
     items: [
       { path: '/pricing-deep-dive', label: 'Pricing', icon: BarChart3 },
       { path: '/target-prices', label: 'Target & Limits', icon: Target },
+      { path: '/scatter-analysis', label: 'Customer Portfolio', icon: Crosshair },
       { path: '/volume-deep-dive', label: 'Volume', icon: Package },
       { path: '/cost-deep-dive', label: 'Cost', icon: Layers },
       { path: '/other-deep-dive', label: 'Other', icon: MoreHorizontal },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { path: '/data-connections', label: 'Data Connections', icon: Database },
     ],
   },
 ]
 
 export default function Sidebar() {
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-sidebar to-[#111520] flex flex-col z-50">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-sidebar to-[#091a3d] flex flex-col z-50">
       {/* Logo / Brand */}
       <div className="px-5 py-5 border-b border-white/8">
         <div className="flex items-center gap-3">

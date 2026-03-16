@@ -11,6 +11,7 @@ import {
 import { getConditionSpendingData } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 import { TrendingUp, TrendingDown } from 'lucide-react'
+import InfoTooltip from '../components/InfoTooltip'
 
 export default function ConditionSpending() {
   const { filters } = useFilters()
@@ -24,7 +25,10 @@ export default function ConditionSpending() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-text-primary">Condition Spending</h2>
+        <h2 className="text-xl font-bold text-text-primary">
+          Condition Spending
+          <InfoTooltip text="Condition spending includes all customer-granted discounts, rebates, logistics allowances, and promotional conditions. It directly reduces net revenue and impacts the SCO/MT." />
+        </h2>
         <p className="text-sm text-text-secondary mt-1">
           Monthly comparison of condition spending — Actual vs Last Year
         </p>
@@ -64,16 +68,16 @@ export default function ConditionSpending() {
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={data} barGap={4}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#dde1e8" vertical={false} />
-            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#dde1e8' }} tickLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
             <YAxis tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M€`} />
             <Tooltip
               formatter={(value) => [`${Number(value).toFixed(1)} M€`]}
-              contentStyle={{ borderRadius: '10px', border: '1px solid #dde1e8', boxShadow: '0 4px 16px rgba(26,31,46,0.08)', fontSize: '13px' }}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
             />
             <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="square" iconSize={10} />
-            <Bar dataKey="actual" name="Actual" fill="#d41e25" radius={[6, 6, 0, 0]} maxBarSize={36} />
-            <Bar dataKey="lastYear" name="Last Year" fill="#c5cbd6" radius={[6, 6, 0, 0]} maxBarSize={36} />
+            <Bar dataKey="actual" name="Actual" fill="#173B7A" radius={[6, 6, 0, 0]} maxBarSize={36} />
+            <Bar dataKey="lastYear" name="Last Year" fill="#b8c2cf" radius={[6, 6, 0, 0]} maxBarSize={36} />
           </BarChart>
         </ResponsiveContainer>
       </div>

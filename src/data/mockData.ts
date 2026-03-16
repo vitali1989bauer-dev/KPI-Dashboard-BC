@@ -350,3 +350,56 @@ export function getTargetPriceSummary(rows: TargetPriceRow[]): TargetPriceSummar
     revenueAtRisk: Math.round(revenueAtRisk * 10) / 10,
   }
 }
+
+// ---------------------------------------------------------------------------
+// Scatter Plot — Customer positioning: volume vs. price point
+// ---------------------------------------------------------------------------
+export interface ScatterPoint {
+  name: string
+  segment: string
+  volume: number       // MT
+  pricePerMT: number   // €/MT
+  marginPct: number    // %
+  trend: 'up' | 'down' | 'flat'
+}
+
+const scatterBase: Omit<ScatterPoint, 'volume' | 'pricePerMT' | 'marginPct'>[] = [
+  { name: 'BayWa', segment: 'Arable Farming', trend: 'up' },
+  { name: 'AGRAVIS', segment: 'Arable Farming', trend: 'flat' },
+  { name: 'Nutrien', segment: 'Specialty Crops', trend: 'up' },
+  { name: 'Yara', segment: 'Specialty Crops', trend: 'up' },
+  { name: 'EuroChem', segment: 'Industrial', trend: 'down' },
+  { name: 'Südzucker AG', segment: 'Specialty Crops', trend: 'flat' },
+  { name: 'Raiffeisen', segment: 'Arable Farming', trend: 'up' },
+  { name: 'Agrarfrost', segment: 'Horticulture', trend: 'down' },
+  { name: 'Nordsaat', segment: 'Arable Farming', trend: 'flat' },
+  { name: 'CropEnergies', segment: 'Specialty Crops', trend: 'up' },
+  { name: 'SKW Piesteritz', segment: 'Industrial', trend: 'flat' },
+  { name: 'Helm AG', segment: 'Industrial', trend: 'down' },
+  { name: 'Lemken', segment: 'Arable Farming', trend: 'up' },
+  { name: 'Borealis L.A.T', segment: 'Specialty Crops', trend: 'flat' },
+  { name: 'ICL Group', segment: 'Industrial', trend: 'up' },
+  { name: 'Evonik Industries', segment: 'Industrial', trend: 'flat' },
+  { name: 'Compo Expert', segment: 'Horticulture', trend: 'up' },
+  { name: 'Haifa Group', segment: 'Horticulture', trend: 'up' },
+  { name: 'Tessenderlo', segment: 'Specialty Crops', trend: 'down' },
+  { name: 'BASF Agro', segment: 'Arable Farming', trend: 'up' },
+]
+
+const baseVols = [48200, 42800, 61500, 55200, 38700, 22400, 31500, 15800, 18900, 26700, 44100, 35600, 19400, 28300, 52800, 33200, 12600, 17800, 24500, 39800]
+const basePricePts = [312, 295, 335, 328, 278, 348, 302, 385, 290, 356, 265, 252, 318, 342, 288, 275, 395, 372, 315, 308]
+const baseMargins = [26.4, 24.1, 31.2, 29.8, 21.5, 33.8, 25.2, 36.1, 23.8, 34.5, 19.2, 17.8, 27.6, 32.4, 22.8, 20.1, 38.2, 35.4, 28.9, 26.8]
+
+export function getScatterData(f: Filters): ScatterPoint[] {
+  return scatterBase.map((pt, i) => ({
+    ...pt,
+    volume: Math.round(vary(baseVols[i], f, 400 + i)),
+    pricePerMT: vary(basePricePts[i], f, 420 + i),
+    marginPct: vary(baseMargins[i], f, 440 + i),
+  }))
+}
+
+export const scatterCorridors = {
+  targetPrice: 310,
+  limitPrice: 260,
+}
