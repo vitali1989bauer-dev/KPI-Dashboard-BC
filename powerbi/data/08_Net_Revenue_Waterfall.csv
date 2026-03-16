@@ -1,0 +1,8 @@
+Step_Order,Step_Name,Value_M_EUR,Type
+1,Gross Revenue,485.2,start
+2,Trade Discounts,-28.4,negative
+3,Logistics Allowances,-14.7,negative
+4,Volume Rebates,-18.2,negative
+5,Promotional Conditions,-8.6,negative
+6,Early Payment Discounts,-3.8,negative
+7,Net Revenue,411.5,end

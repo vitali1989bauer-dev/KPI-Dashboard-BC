@@ -1,0 +1,21 @@
+Customer,Segment,Archetype,Volume_MT,Price_EUR_MT,Margin_Pct,Target_Margin_Pct,Limit_Margin_Pct,Trend
+BayWa,Arable Farming,Contract Loyal,48200,312,26.4,28,20,up
+AGRAVIS,Arable Farming,Volume Partner,42800,295,24.1,26,18,flat
+Nutrien,Specialty Crops,Strategic Account,61500,335,31.2,30,22,up
+Yara,Specialty Crops,Value Maximizer,55200,328,29.8,30,22,up
+EuroChem,Industrial,Spot Opportunist,38700,278,21.5,24,16,down
+Südzucker AG,Specialty Crops,Contract Loyal,22400,348,33.8,32,24,flat
+Raiffeisen,Arable Farming,Volume Partner,31500,302,25.2,26,18,up
+Agrarfrost,Horticulture,Value Maximizer,15800,385,36.1,34,26,down
+Nordsaat,Arable Farming,Contract Loyal,18900,290,23.8,25,17,flat
+CropEnergies,Specialty Crops,Strategic Account,26700,356,34.5,33,25,up
+SKW Piesteritz,Industrial,Spot Opportunist,44100,265,19.2,22,14,flat
+Helm AG,Industrial,Spot Opportunist,35600,252,17.8,20,12,down
+Lemken,Arable Farming,Value Maximizer,19400,318,27.6,28,20,up
+Borealis L.A.T,Specialty Crops,Strategic Account,28300,342,32.4,31,23,flat
+ICL Group,Industrial,Volume Partner,52800,288,22.8,24,16,up
+Evonik Industries,Industrial,Contract Loyal,33200,275,20.1,22,14,flat
+Compo Expert,Horticulture,Value Maximizer,12600,395,38.2,36,28,up
+Haifa Group,Horticulture,Strategic Account,17800,372,35.4,34,26,up
+Tessenderlo,Specialty Crops,Volume Partner,24500,315,28.9,29,21,down
+BASF Agro,Arable Farming,Strategic Account,39800,308,26.8,27,19,up

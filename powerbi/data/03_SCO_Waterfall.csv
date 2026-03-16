@@ -1,0 +1,12 @@
+Step_Order,Effect_Name,Value_EUR_MT,Type,Category
+1,Actual SCO/MT Last Year,203.8,start,Total
+2,List Price Effect,8.4,positive,Revenue
+3,Condition Effect,-3.2,negative,Revenue
+4,Volume / Capacity,-2.1,negative,Mix / Other
+5,Energy Costs,-4.8,negative,Cost
+6,Raw Material & Mining,2.3,positive,Cost
+7,Logistics & Freight,-1.5,negative,Cost
+8,FX Effect,1.8,positive,Mix / Other
+9,Product Mix Effect,-1.6,negative,Mix / Other
+10,New Business Effect,3.2,positive,Mix / Other
+11,Actual SCO/MT Current,206.3,end,Total

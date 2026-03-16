@@ -1,0 +1,43 @@
+Filter_Type,Option_Value,Sort_Order
+Archetype,All Archetypes,1
+Archetype,Value Maximizer,2
+Archetype,Volume Partner,3
+Archetype,Spot Opportunist,4
+Archetype,Contract Loyal,5
+Archetype,Strategic Account,6
+Region,All Regions,1
+Region,Europe,2
+Region,North America,3
+Region,South America,4
+Region,Asia Pacific,5
+Cluster,All Clusters,1
+Cluster,DACH,2
+Cluster,Nordics,3
+Cluster,Benelux,4
+Cluster,Southern Europe,5
+Cluster,North America,6
+Segment,All Segments,1
+Segment,Arable Farming,2
+Segment,Specialty Crops,3
+Segment,Horticulture,4
+Segment,Livestock & Feed,5
+Segment,Industrial,6
+Customer,All Customers,1
+Customer,BayWa,2
+Customer,AGRAVIS,3
+Customer,Nutrien,4
+Customer,Yara,5
+Customer,EuroChem,6
+Product,All Products,1
+Product,Korn-Kali®,2
+Product,Patentkali®,3
+Product,60er Kali,4
+Product,ESTA® Kieserit,5
+Product,Epso Top®,6
+Product,De-icing Salt,7
+Product,Industrial Salt,8
+Product,Food Grade Salt,9
+Time_Period,Month-to-month,1
+Time_Period,PL period,2
+Time_Period,YTD,3
+Time_Period,Full year / Fiscal year,4

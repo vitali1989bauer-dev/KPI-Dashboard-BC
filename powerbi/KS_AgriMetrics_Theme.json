@@ -1,0 +1,69 @@
+{
+  "name": "K+S AgriMetrics",
+  "description": "K+S Corporate theme for Power BI — matches the web-based KPI Dashboard",
+  "dataColors": [
+    "#173B7A",
+    "#1a8754",
+    "#d49a1a",
+    "#c43e3e",
+    "#667885",
+    "#2a5199",
+    "#8a9baa",
+    "#e8a317",
+    "#f0c04a",
+    "#0f2654"
+  ],
+  "foreground": "#1a2332",
+  "background": "#f4f6f8",
+  "tableAccent": "#173B7A",
+  "good": "#1a8754",
+  "bad": "#c43e3e",
+  "neutral": "#667885",
+  "maximum": "#173B7A",
+  "center": "#d49a1a",
+  "minimum": "#c43e3e",
+  "textClasses": {
+    "callout": {
+      "fontSize": 28,
+      "fontFace": "Inter, Segoe UI, sans-serif",
+      "color": "#1a2332"
+    },
+    "title": {
+      "fontSize": 14,
+      "fontFace": "Inter, Segoe UI, sans-serif",
+      "color": "#4a5568"
+    },
+    "header": {
+      "fontSize": 11,
+      "fontFace": "Inter, Segoe UI, sans-serif",
+      "color": "#667885"
+    },
+    "label": {
+      "fontSize": 11,
+      "fontFace": "Inter, Segoe UI, sans-serif",
+      "color": "#4a5568"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#ffffff" } }, "transparency": 0 }],
+        "border": [{ "color": { "solid": { "color": "#d5dbe3" } }, "show": true }],
+        "outlineColor": [{ "solid": { "color": "#d5dbe3" } }],
+        "outlineWeight": [1],
+        "roundedCorner": [12],
+        "dropShadow": [{ "show": false }]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#f4f6f8" } }, "transparency": 0 }]
+      }
+    },
+    "card": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#ffffff" } }, "transparency": 0 }]
+      }
+    }
+  }
+}

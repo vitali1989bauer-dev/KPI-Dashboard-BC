@@ -1,0 +1,6 @@
+Alert_ID,Customer,Product,Actual_Price_EUR,Limit_Price_EUR,Deviation_Pct,Severity,Timestamp
+a1,EuroChem,60er Kali,248,270,-8.1,critical,2026-03-16 07:42
+a2,Helm AG,Korn-Kali®,262,285,-8.1,critical,2026-03-15 16:20
+a3,SKW Piesteritz,Industrial Salt,51,55,-7.3,warning,2026-03-15 11:05
+a4,Tessenderlo,ESTA® Kieserit,158,170,-7.1,warning,2026-03-14 14:30
+a5,Nordsaat,Patentkali®,305,320,-4.7,warning,2026-03-14 09:15

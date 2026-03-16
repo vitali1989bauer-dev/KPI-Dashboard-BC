@@ -1,0 +1,9 @@
+KPI_ID,Title,Value,Unit,Change_Pct,Change_Label,Status,Subtitle
+actual-sco,Actual SCO/MT,218.5,€/MT,,,neutral,Current Period
+vs-ly,Δ vs Last Year,14.7,€/MT,6.7,vs LY,positive,+6.7% YoY improvement
+vs-pl,Δ vs PL,-4.8,€/MT,-2.2,vs Plan,negative,-2.2% below plan
+vs-target,Δ vs Target,6.3,€/MT,2.9,vs Target,positive,+2.9% above target
+volume-forecast,Volume Forecast Fulfillment Rate,92.6,%,1.8,vs LY,positive,On track
+market-price-index,Potash Market Price Index,112.4,Index,-2.6,vs LY,warning,Potash spot prices elevated
+position-valuation,Position Valuation Potash & Inputs,5.8,M€,-8.7,vs LY,neutral,In line with targets
+revenue-leakage,Revenue Leakage / Condition Spending,24.3,M€,3.8,vs LY,negative,Increased spending

@@ -1,0 +1,6 @@
+Site,Location,Product,Capacity_MT,Utilization_Pct,Output_MT,Cost_per_MT_EUR,Cost_vs_Budget_Pct,Status
+Werra Plant,Heringen Hesse,Korn-Kali® / 60er Kali,2200000,91.2,2006400,82.4,3.2,on-track
+Zielitz Mine,Saxony-Anhalt,KCl / Korn-Kali®,2000000,88.5,1770000,78.6,-1.4,on-track
+Bernburg Plant,Saxony-Anhalt,Industrial & Food Salt,1800000,94.1,1693800,24.8,5.1,attention
+Bethune Mine,"Saskatchewan, CA",KCl / Potash,2000000,72.3,1446000,95.2,8.7,critical
+Sigmundshall,Lower Saxony,Patentkali® / Kieserit,800000,85.8,686400,105.3,2.1,on-track
