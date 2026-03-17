@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import {
   AlertTriangle,
   AlertCircle,
@@ -12,6 +12,7 @@ import {
   Zap,
   X,
 } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import {
   BarChart,
   Bar,
@@ -92,10 +93,33 @@ function SeverityBadge({ severity }: { severity: 'critical' | 'warning' | 'info'
 // ---------------------------------------------------------------------------
 function FieldAlertTooltip({ alert }: { alert: PriceEngineAlert }) {
   const [show, setShow] = useState(false)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  const updatePos = useCallback(() => {
+    if (!btnRef.current) return
+    const rect = btnRef.current.getBoundingClientRect()
+    setPos({
+      top: rect.top + window.scrollY,
+      left: rect.left + rect.width / 2 + window.scrollX,
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!show) return
+    updatePos()
+    window.addEventListener('scroll', updatePos, true)
+    window.addEventListener('resize', updatePos)
+    return () => {
+      window.removeEventListener('scroll', updatePos, true)
+      window.removeEventListener('resize', updatePos)
+    }
+  }, [show, updatePos])
 
   return (
     <span className="relative inline-flex items-center ml-1">
       <button
+        ref={btnRef}
         className="p-0.5 rounded-full text-amber-500 hover:text-amber-700 hover:bg-amber-50 transition-colors cursor-help"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
@@ -104,8 +128,15 @@ function FieldAlertTooltip({ alert }: { alert: PriceEngineAlert }) {
       >
         <Info className="w-3.5 h-3.5" />
       </button>
-      {show && (
-        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 bg-white border border-amber-200 rounded-xl shadow-xl p-4 text-xs leading-relaxed font-normal">
+      {show && pos && createPortal(
+        <div
+          className="fixed z-[9999] w-80 bg-white border border-amber-200 rounded-xl shadow-xl p-4 text-xs leading-relaxed font-normal pointer-events-none"
+          style={{
+            top: pos.top - 8,
+            left: pos.left,
+            transform: 'translate(-50%, -100%)',
+          }}
+        >
           <div className="flex items-center gap-1.5 mb-2">
             <SeverityBadge severity={alert.severity} />
             <span className="text-[10px] text-text-muted">Archetype: {alert.archetypeContext}</span>
@@ -122,7 +153,8 @@ function FieldAlertTooltip({ alert }: { alert: PriceEngineAlert }) {
             ))}
           </div>
           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-white" />
-        </div>
+        </div>,
+        document.body
       )}
     </span>
   )
