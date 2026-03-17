@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, SlidersHorizontal, X, FileText, Check } from 'lucide-react'
+import { ChevronDown, SlidersHorizontal, X, FileText, Download } from 'lucide-react'
 import {
   regions,
   countryClusters,
@@ -11,6 +11,7 @@ import {
   type Filters,
 } from '../data/mockData'
 import { useFilters } from '../FilterContext'
+import { generateManagementReport } from '../utils/generateReport'
 
 function Dropdown({
   label,
@@ -73,12 +74,19 @@ function Dropdown({
 }
 
 function ReportButton() {
+  const { filters } = useFilters()
   const [state, setState] = useState<'idle' | 'generating' | 'done'>('idle')
 
-  function handleClick() {
+  async function handleClick() {
+    if (state === 'generating') return
     setState('generating')
-    setTimeout(() => setState('done'), 2200)
-    setTimeout(() => setState('idle'), 4500)
+    try {
+      await generateManagementReport(filters)
+      setState('done')
+      setTimeout(() => setState('idle'), 3500)
+    } catch {
+      setState('idle')
+    }
   }
 
   return (
@@ -94,9 +102,9 @@ function ReportButton() {
       }`}
     >
       {state === 'done' ? (
-        <><Check className="w-4 h-4" /> Report Ready</>
+        <><Download className="w-4 h-4" /> PDF Downloaded</>
       ) : state === 'generating' ? (
-        <><FileText className="w-4 h-4" /> Generating...</>
+        <><FileText className="w-4 h-4" /> Generating PDF...</>
       ) : (
         <><FileText className="w-4 h-4" /> Create Mgmt Report</>
       )}
