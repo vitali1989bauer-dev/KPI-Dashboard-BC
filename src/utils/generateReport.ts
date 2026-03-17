@@ -344,7 +344,7 @@ export async function generateManagementReport(filters: Filters): Promise<void> 
   doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
   setTC(doc, delta >= 0 ? POSITIVE : NEGATIVE)
-  doc.text(`Net SCO/MT Change: ${delta >= 0 ? '+' : ''}${formatNum(delta)} €/MT  (${formatNum(startVal)} → ${formatNum(endVal)} €/MT)`, w / 2, y + 9, { align: 'center' })
+  doc.text(`Net SCO/MT Change: ${delta >= 0 ? '+' : ''}${formatNum(delta)} EUR/MT  (${formatNum(startVal)} to ${formatNum(endVal)} EUR/MT)`, w / 2, y + 9, { align: 'center' })
 
   // =========================================================================
   // PAGE 4 — Product Pricing + Revenue Waterfall
@@ -357,7 +357,7 @@ export async function generateManagementReport(filters: Filters): Promise<void> 
   const pricing = getPricingDeepDiveData(filters)
   autoTable(doc, {
     startY: y,
-    head: [['Product', 'Avg Price (€/MT)', 'vs LY (%)', 'Margin (%)', 'Margin Δ (pp)', 'Volume (MT)']],
+    head: [['Product', 'Avg Price (EUR/MT)', 'vs LY (%)', 'Margin (%)', 'Margin Chg (pp)', 'Volume (MT)']],
     body: pricing.map(p => [
       p.segment,
       formatNum(p.avgPrice),
