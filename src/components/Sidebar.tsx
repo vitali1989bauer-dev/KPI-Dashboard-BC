@@ -9,9 +9,9 @@ import {
   Crosshair,
   Database,
   Globe,
-  HelpCircle,
   Activity,
   SlidersHorizontal,
+  FunctionSquare,
 } from 'lucide-react'
 
 const navGroups = [
@@ -47,8 +47,8 @@ const navGroups = [
   {
     label: 'System',
     items: [
+      { path: '/kpi-formulas', label: 'KPI Formulas', icon: FunctionSquare },
       { path: '/data-connections', label: 'Data Connections', icon: Database },
-      { path: '/implementation', label: 'FAQ', icon: HelpCircle },
     ],
   },
 ]

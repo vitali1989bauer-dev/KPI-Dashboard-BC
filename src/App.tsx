@@ -12,7 +12,7 @@ import PricingDeepDive from './pages/PricingDeepDive'
 import CostDeepDive from './pages/CostDeepDive'
 import DataConnections from './pages/DataConnections'
 import PriceEngine from './pages/PriceEngine'
-import ImplementationFAQ from './pages/ImplementationFAQ'
+import KpiFormulas from './pages/KpiFormulas'
 
 export default function App() {
   return (
@@ -32,8 +32,8 @@ export default function App() {
               <Route path="/pricing-deep-dive" element={<PricingDeepDive />} />
               <Route path="/cost-deep-dive" element={<CostDeepDive />} />
               <Route path="/price-engine" element={<PriceEngine />} />
+              <Route path="/kpi-formulas" element={<KpiFormulas />} />
               <Route path="/data-connections" element={<DataConnections />} />
-              <Route path="/implementation" element={<ImplementationFAQ />} />
             </Routes>
           </main>
         </div>
