@@ -16,15 +16,15 @@ import {
 
 const navGroups = [
   {
-    label: 'Pricing Tools',
-    items: [
-      { path: '/price-engine', label: 'Price Engine', icon: SlidersHorizontal },
-    ],
-  },
-  {
     label: 'Overview',
     items: [
       { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: 'Pricing Tools',
+    items: [
+      { path: '/price-engine', label: 'Price Engine', icon: SlidersHorizontal },
     ],
   },
   {
