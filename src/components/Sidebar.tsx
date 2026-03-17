@@ -16,25 +16,25 @@ import {
 
 const navGroups = [
   {
+    label: 'Pricing Tools',
+    items: [
+      { path: '/price-engine', label: 'Price Engine', icon: SlidersHorizontal },
+    ],
+  },
+  {
     label: 'Overview',
     items: [
       { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     ],
   },
   {
-    label: 'Analysis',
+    label: 'Analytics',
     items: [
       { path: '/sco-effect', label: 'SCO Bridge', icon: TrendingUp },
       { path: '/market-intelligence', label: 'Market Intelligence', icon: Globe },
       { path: '/customer-portfolio', label: 'Customer Portfolio', icon: Crosshair },
       { path: '/pricing-conditions', label: 'Pricing & Conditions', icon: DollarSign },
       { path: '/operations', label: 'Operations', icon: Activity },
-    ],
-  },
-  {
-    label: 'Pricing Tools',
-    items: [
-      { path: '/price-engine', label: 'Price Engine', icon: SlidersHorizontal },
     ],
   },
   {

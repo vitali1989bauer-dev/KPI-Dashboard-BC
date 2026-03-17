@@ -434,6 +434,11 @@ export default function PriceEngine() {
   const autoCount = rows.filter(r => !r.isAnchor && r.anchorMarket).length
   const manualCount = rows.length - autoCount
 
+  // Volume totals
+  const totalVolTarget = rows.reduce((s, r) => s + r.volumeTargetMT, 0)
+  const totalVolActual = rows.reduce((s, r) => s + r.volumeActualMT, 0)
+  const totalVolPct = totalVolTarget > 0 ? (totalVolActual / totalVolTarget) * 100 : 0
+
   return (
     <div>
       {/* Header */}
@@ -448,7 +453,7 @@ export default function PriceEngine() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-5 gap-4 mb-6">
         <div className="bg-card rounded-xl border border-border p-5 card-hover">
           <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Pricing Rows</p>
           <p className="text-2xl font-bold text-text-primary">{rows.length}</p>
@@ -476,6 +481,18 @@ export default function PriceEngine() {
           <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Recommendations Applied</p>
           <p className="text-2xl font-bold text-positive">{appliedAlerts.size}</p>
           <p className="text-[11px] text-text-secondary mt-0.5">{propagated.size} anchor propagations</p>
+        </div>
+        <div className="bg-card rounded-xl border border-border p-5 card-hover">
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Volume Achievement</p>
+          <div className="flex items-baseline gap-1.5">
+            <p className={`text-2xl font-bold ${totalVolPct >= 80 ? 'text-positive' : totalVolPct >= 60 ? 'text-warning' : 'text-negative'}`}>
+              {totalVolPct.toFixed(0)}%
+            </p>
+            <span className="text-xs text-text-muted">YTD</span>
+          </div>
+          <p className="text-[11px] text-text-secondary mt-0.5">
+            {(totalVolActual / 1000).toFixed(0)}k / {(totalVolTarget / 1000).toFixed(0)}k MT
+          </p>
         </div>
       </div>
 
@@ -534,6 +551,9 @@ export default function PriceEngine() {
                 <th className="text-right px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Target Margin</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Limit Margin</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Strategy</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Vol. Target</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Vol. Actual</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Achievement</th>
               </tr>
             </thead>
             <tbody>
@@ -605,6 +625,23 @@ export default function PriceEngine() {
                         onChange={v => updateRow(row.id, 'strategy', v)}
                       />
                     </td>
+                    <td className="px-4 py-2.5 text-right text-sm text-text-secondary font-mono">
+                      {(row.volumeTargetMT / 1000).toFixed(0)}k
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-sm text-text-primary font-mono">
+                      {(row.volumeActualMT / 1000).toFixed(0)}k
+                    </td>
+                    <td className="px-4 py-2.5 text-center">
+                      {(() => {
+                        const pct = row.volumeTargetMT > 0 ? (row.volumeActualMT / row.volumeTargetMT) * 100 : 0
+                        const color = pct >= 80 ? 'text-positive bg-positive/10' : pct >= 60 ? 'text-warning bg-warning/10' : 'text-negative bg-negative/10'
+                        return (
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${color}`}>
+                            {pct.toFixed(0)}%
+                          </span>
+                        )
+                      })()}
+                    </td>
                   </tr>
                 )
               })}
@@ -613,53 +650,50 @@ export default function PriceEngine() {
         </div>
       </div>
 
-      {/* Bottom: Anchor Markets + Price Waterfall side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Anchor Markets */}
-        <AnchorMarketPanel rows={rows} onPropagate={propagateAnchor} />
-
-        {/* Price Waterfall */}
-        <div className="bg-card rounded-xl border border-border p-5">
-          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide mb-4 flex items-center gap-2">
-            Impact on Price Waterfall
-            <InfoTooltip text="Shows how individual pricing components (list price adjustments, index changes, energy surcharges, freight, FX, conditions, rebates) build up from the base price to the current net price." />
-          </h3>
-          <ResponsiveContainer width="100%" height={340}>
-            <BarChart data={waterfallData} barGap={0}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
-              <XAxis
-                dataKey="name"
-                tick={{ fontSize: 10, fill: '#4a5568' }}
-                axisLine={{ stroke: '#d5dbe3' }}
-                tickLine={false}
-                interval={0}
-                angle={-20}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: '#4a5568' }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v: number) => `${v}`}
-              />
-              <RechartsTooltip
-                formatter={(_value, _name, entry) => {
-                  const dv = (entry as unknown as { payload: WfPoint }).payload.displayValue
-                  return [`${dv >= 0 ? '+' : ''}${dv.toFixed(1)} €/MT`, '']
-                }}
-                contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '12px' }}
-              />
-              <Bar dataKey="base" stackId="a" fill="transparent" radius={0} />
-              <Bar dataKey="value" stackId="a" radius={[4, 4, 0, 0]} maxBarSize={44}>
-                {waterfallData.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      {/* Price Waterfall — full width */}
+      <div className="bg-card rounded-xl border border-border p-5 mb-6">
+        <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide mb-4 flex items-center gap-2">
+          Impact on Price Waterfall
+          <InfoTooltip text="Shows how individual pricing components (list price adjustments, index changes, energy surcharges, freight, FX, conditions, rebates) build up from the base price to the current net price." />
+        </h3>
+        <ResponsiveContainer width="100%" height={360}>
+          <BarChart data={waterfallData} barGap={0}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+            <XAxis
+              dataKey="name"
+              tick={{ fontSize: 11, fill: '#4a5568' }}
+              axisLine={{ stroke: '#d5dbe3' }}
+              tickLine={false}
+              interval={0}
+              angle={-15}
+              textAnchor="end"
+              height={55}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: '#4a5568' }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v: number) => `${v}`}
+            />
+            <RechartsTooltip
+              formatter={(_value, _name, entry) => {
+                const dv = (entry as unknown as { payload: WfPoint }).payload.displayValue
+                return [`${dv >= 0 ? '+' : ''}${dv.toFixed(1)} €/MT`, '']
+              }}
+              contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '12px' }}
+            />
+            <Bar dataKey="base" stackId="a" fill="transparent" radius={0} />
+            <Bar dataKey="value" stackId="a" radius={[4, 4, 0, 0]} maxBarSize={52}>
+              {waterfallData.map((entry, i) => (
+                <Cell key={i} fill={entry.fill} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
+
+      {/* Anchor Markets — below waterfall */}
+      <AnchorMarketPanel rows={rows} onPropagate={propagateAnchor} />
     </div>
   )
 }
