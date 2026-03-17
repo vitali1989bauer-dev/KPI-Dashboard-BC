@@ -11,6 +11,7 @@ import Operations from './pages/Operations'
 import PricingDeepDive from './pages/PricingDeepDive'
 import CostDeepDive from './pages/CostDeepDive'
 import DataConnections from './pages/DataConnections'
+import PriceEngine from './pages/PriceEngine'
 import ImplementationFAQ from './pages/ImplementationFAQ'
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
               <Route path="/operations" element={<Operations />} />
               <Route path="/pricing-deep-dive" element={<PricingDeepDive />} />
               <Route path="/cost-deep-dive" element={<CostDeepDive />} />
+              <Route path="/price-engine" element={<PriceEngine />} />
               <Route path="/data-connections" element={<DataConnections />} />
               <Route path="/implementation" element={<ImplementationFAQ />} />
             </Routes>

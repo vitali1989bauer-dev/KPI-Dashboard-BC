@@ -626,3 +626,186 @@ export function getMarketSignals(f: Filters): MarketSignal[] {
     },
   ]
 }
+
+// ---------------------------------------------------------------------------
+// Price Engine — Editable pricing rows, anchor markets, situation-based alerts
+// ---------------------------------------------------------------------------
+
+export type PricingStrategy = 'volume-driven' | 'price-driven' | ''
+
+export interface PriceEngineRow {
+  id: string
+  region: string
+  customerType: string
+  customer: string
+  product: string
+  targetPrice: number
+  limitPrice: number
+  targetMargin: number
+  limitMargin: number
+  strategy: PricingStrategy
+  currency: string
+  anchorMarket: string | null  // id of the anchor row, null if this IS the anchor
+  isAnchor: boolean
+  alertField: string | null    // which field has an active alert
+}
+
+export interface AnchorMarketLink {
+  anchorId: string
+  anchorRegion: string
+  anchorLabel: string
+  linkedIds: string[]
+  linkedRegions: string[]
+  linkedLabel: string
+  rule: string // e.g., "CIF parity + logistics delta"
+}
+
+export interface PriceEngineAlert {
+  id: string
+  rowId: string
+  field: string            // the input field name that is affected
+  severity: 'critical' | 'warning' | 'info'
+  title: string
+  description: string
+  recommendation: string
+  rationale: string
+  recommendedDelta: number // pp change suggestion
+  archetypeContext: string
+  relatedDrivers: string[] // links to analytics dashboard drivers
+}
+
+export function getPriceEngineRows(f: Filters): PriceEngineRow[] {
+  return [
+    // --- Europe anchor market ---
+    { id: 'pe-1', region: 'Europe', customerType: 'A', customer: 'BayWa', product: 'MOP', targetPrice: vary(700, f, 2000), limitPrice: vary(300, f, 2001), targetMargin: vary(20, f, 2002), limitMargin: vary(10, f, 2003), strategy: 'price-driven', currency: '€/t', anchorMarket: null, isAnchor: true, alertField: null },
+    { id: 'pe-2', region: 'Europe', customerType: 'A', customer: 'AGRAVIS', product: 'SOP', targetPrice: vary(900, f, 2010), limitPrice: vary(500, f, 2011), targetMargin: vary(25, f, 2012), limitMargin: vary(12, f, 2013), strategy: 'volume-driven', currency: '€/t', anchorMarket: null, isAnchor: true, alertField: 'targetPrice' },
+    { id: 'pe-3', region: 'Europe', customerType: 'B', customer: 'Raiffeisen', product: 'Korn-Kali\u00AE', targetPrice: vary(650, f, 2020), limitPrice: vary(280, f, 2021), targetMargin: vary(22, f, 2022), limitMargin: vary(11, f, 2023), strategy: 'price-driven', currency: '€/t', anchorMarket: null, isAnchor: false, alertField: null },
+    // --- North America anchor market ---
+    { id: 'pe-4', region: 'North America', customerType: 'A', customer: 'Nutrien', product: 'MOP', targetPrice: vary(420, f, 2030), limitPrice: vary(200, f, 2031), targetMargin: vary(18, f, 2032), limitMargin: vary(9, f, 2033), strategy: 'volume-driven', currency: '$/t', anchorMarket: null, isAnchor: true, alertField: 'limitPrice' },
+    { id: 'pe-5', region: 'North America', customerType: 'B', customer: 'Mosaic', product: 'MOP', targetPrice: vary(400, f, 2040), limitPrice: vary(190, f, 2041), targetMargin: vary(16, f, 2042), limitMargin: vary(8, f, 2043), strategy: 'price-driven', currency: '$/t', anchorMarket: 'pe-4', isAnchor: false, alertField: null },
+    // --- South America (anchored to North America) ---
+    { id: 'pe-6', region: 'South America', customerType: 'A', customer: 'Fertipar', product: 'MOP', targetPrice: vary(380, f, 2050), limitPrice: vary(180, f, 2051), targetMargin: vary(15, f, 2052), limitMargin: vary(7, f, 2053), strategy: 'volume-driven', currency: '$/t', anchorMarket: 'pe-4', isAnchor: false, alertField: 'targetMargin' },
+    { id: 'pe-7', region: 'South America', customerType: 'B', customer: 'Heringer', product: 'SOP', targetPrice: vary(520, f, 2060), limitPrice: vary(250, f, 2061), targetMargin: vary(17, f, 2062), limitMargin: vary(8, f, 2063), strategy: 'price-driven', currency: '$/t', anchorMarket: null, isAnchor: false, alertField: null },
+    // --- Asia Pacific ---
+    { id: 'pe-8', region: 'Asia Pacific', customerType: 'A', customer: 'Sinofert', product: 'MOP', targetPrice: vary(360, f, 2070), limitPrice: vary(170, f, 2071), targetMargin: vary(14, f, 2072), limitMargin: vary(6, f, 2073), strategy: 'volume-driven', currency: '$/t', anchorMarket: null, isAnchor: false, alertField: null },
+    { id: 'pe-9', region: 'Asia Pacific', customerType: 'B', customer: 'IPL', product: 'CMS', targetPrice: vary(290, f, 2080), limitPrice: vary(140, f, 2081), targetMargin: vary(13, f, 2082), limitMargin: vary(6, f, 2083), strategy: 'price-driven', currency: '$/t', anchorMarket: null, isAnchor: false, alertField: null },
+    // --- Overseas (anchored to Europe) ---
+    { id: 'pe-10', region: 'Overseas', customerType: 'A', customer: 'OCP Group', product: 'CMS', targetPrice: vary(310, f, 2090), limitPrice: vary(150, f, 2091), targetMargin: vary(16, f, 2092), limitMargin: vary(7, f, 2093), strategy: 'volume-driven', currency: '$/t', anchorMarket: 'pe-1', isAnchor: false, alertField: null },
+  ]
+}
+
+export function getAnchorMarketLinks(): AnchorMarketLink[] {
+  return [
+    {
+      anchorId: 'pe-4',
+      anchorRegion: 'North America',
+      anchorLabel: 'North America (Nutrien MOP)',
+      linkedIds: ['pe-5', 'pe-6'],
+      linkedRegions: ['North America', 'South America'],
+      linkedLabel: 'Mosaic MOP, Fertipar MOP',
+      rule: 'CIF parity + logistics delta. Price adjustments in the anchor propagate with regional freight differential.',
+    },
+    {
+      anchorId: 'pe-1',
+      anchorRegion: 'Europe',
+      anchorLabel: 'Europe (BayWa MOP)',
+      linkedIds: ['pe-10'],
+      linkedRegions: ['Overseas'],
+      linkedLabel: 'OCP Group CMS',
+      rule: 'FOB Europe + freight surcharge. European base price sets the floor for overseas CMS export pricing.',
+    },
+  ]
+}
+
+export function getPriceEngineAlerts(f: Filters): PriceEngineAlert[] {
+  const mopChange = vary(1.5, f, 3000)
+  const gasImpact = vary(2.8, f, 3001)
+  const freightDelta = vary(0.9, f, 3002)
+  return [
+    {
+      id: 'pea-1',
+      rowId: 'pe-4',
+      field: 'limitPrice',
+      severity: 'critical',
+      title: `MOP index North America changed by +${mopChange.toFixed(1)}% pp — please review target price`,
+      description: `The Vancouver MOP CFR spot has shifted +${mopChange.toFixed(1)}% pp since last adjustment. Your current limit price may be below market.`,
+      recommendation: `Increase limit price by +${(mopChange * 0.8).toFixed(1)}% pp, target price by +${(mopChange * 0.5).toFixed(1)}% pp`,
+      rationale: `In comparable situations within the "Volume Partner" archetype, the margin corridor narrowed and shifted upward. Historical data shows that delayed adjustments in North America led to ${(mopChange * 2.1).toFixed(1)}% margin erosion within 60 days.`,
+      recommendedDelta: Math.round(mopChange * 0.8 * 10) / 10,
+      archetypeContext: 'Volume Partner',
+      relatedDrivers: ['MOP Vancouver Index', 'Freight Baltic Index', 'USD/CAD FX'],
+    },
+    {
+      id: 'pea-2',
+      rowId: 'pe-2',
+      field: 'targetPrice',
+      severity: 'warning',
+      title: `Energy cost increase of +${gasImpact.toFixed(1)}% impacts SOP production margins`,
+      description: `Natural gas TTF has risen +${gasImpact.toFixed(1)}% since last price review. SOP production is energy-intensive — margin corridor needs recalibration.`,
+      recommendation: `Increase target price by +${(gasImpact * 0.6).toFixed(1)}% pp to maintain margin corridor`,
+      rationale: `In the "Contract Loyal" archetype with energy-sensitive products, comparable gas price increases historically triggered a ${(gasImpact * 0.65).toFixed(1)}% corridor shift within 30 days. Early adjustment preserved customer retention at 94%.`,
+      recommendedDelta: Math.round(gasImpact * 0.6 * 10) / 10,
+      archetypeContext: 'Contract Loyal',
+      relatedDrivers: ['Natural Gas TTF', 'Electricity Price Index', 'Production Cost/MT'],
+    },
+    {
+      id: 'pea-3',
+      rowId: 'pe-6',
+      field: 'targetMargin',
+      severity: 'warning',
+      title: `Anchor market shift: North America adjusted +${mopChange.toFixed(1)}% — South America alignment needed`,
+      description: `North America (anchor market) has seen a +${mopChange.toFixed(1)}% pp MOP price shift. South American prices for Fertipar MOP should be aligned via CIF parity rule.`,
+      recommendation: `Increase target margin by +${(mopChange * 0.7).toFixed(1)}% pp (auto-adjustment available via anchor link)`,
+      rationale: `CIF parity pricing with North America requires corresponding adjustment. In comparable situations, Brazil-market delayed adjustments eroded margin by ${(mopChange * 1.5).toFixed(1)}% pp within one pricing cycle.`,
+      recommendedDelta: Math.round(mopChange * 0.7 * 10) / 10,
+      archetypeContext: 'Volume Partner',
+      relatedDrivers: ['MOP Vancouver Index', 'BRL/USD FX', 'Freight Cost Brazil'],
+    },
+    {
+      id: 'pea-4',
+      rowId: 'pe-3',
+      field: 'limitPrice',
+      severity: 'info',
+      title: `Logistics cost index shifted +${freightDelta.toFixed(1)}% — review Korn-Kali® freight component`,
+      description: `The European freight index rose +${freightDelta.toFixed(1)}% since last review. This primarily affects inland distribution costs for Korn-Kali® to the DACH market.`,
+      recommendation: `Consider adjusting limit price by +${(freightDelta * 0.4).toFixed(1)}% pp to offset freight`,
+      rationale: `In "Value Maximizer" archetype situations with similar freight shifts, proactive limit adjustments maintained the net margin corridor. Customers in this archetype typically accept logistics-based price adjustments within 0.5-1.0% pp.`,
+      recommendedDelta: Math.round(freightDelta * 0.4 * 10) / 10,
+      archetypeContext: 'Value Maximizer',
+      relatedDrivers: ['Freight Index Europe', 'Logistics & Distribution Cost', 'Diesel Price Index'],
+    },
+  ]
+}
+
+// ---------------------------------------------------------------------------
+// Price Engine Waterfall — Shows impact of manual price changes
+// ---------------------------------------------------------------------------
+export interface PriceWaterfallStep {
+  name: string
+  value: number
+  type: 'start' | 'end' | 'positive' | 'negative'
+}
+
+export function getPriceEngineWaterfall(f: Filters): PriceWaterfallStep[] {
+  const basePrice = vary(320, f, 4000)
+  const listEffect = vary(12.5, f, 4001)
+  const indexAdj = vary(4.8, f, 4002)
+  const energySurch = vary(3.2, f, 4003)
+  const freightAdj = vary(-2.1, f, 4004)
+  const fxEffect = vary(1.5, f, 4005)
+  const conditionEffect = vary(-5.8, f, 4006)
+  const volumeRebate = vary(-3.4, f, 4007)
+  const netPrice = Math.round((basePrice + listEffect + indexAdj + energySurch + freightAdj + fxEffect + conditionEffect + volumeRebate) * 10) / 10
+
+  return [
+    { name: 'Base Price\n(Last Period)', value: basePrice, type: 'start' },
+    { name: 'List Price\nAdjustment', value: listEffect, type: listEffect >= 0 ? 'positive' : 'negative' },
+    { name: 'Index\nAdjustment', value: indexAdj, type: indexAdj >= 0 ? 'positive' : 'negative' },
+    { name: 'Energy\nSurcharge', value: energySurch, type: energySurch >= 0 ? 'positive' : 'negative' },
+    { name: 'Freight\nDelta', value: freightAdj, type: freightAdj >= 0 ? 'positive' : 'negative' },
+    { name: 'FX\nEffect', value: fxEffect, type: fxEffect >= 0 ? 'positive' : 'negative' },
+    { name: 'Condition\nEffect', value: conditionEffect, type: conditionEffect >= 0 ? 'positive' : 'negative' },
+    { name: 'Volume\nRebate', value: volumeRebate, type: volumeRebate >= 0 ? 'positive' : 'negative' },
+    { name: 'Net Price\n(Current)', value: netPrice, type: 'end' },
+  ]
+}

@@ -11,6 +11,7 @@ import {
   Globe,
   HelpCircle,
   Activity,
+  SlidersHorizontal,
 } from 'lucide-react'
 
 const navGroups = [
@@ -28,6 +29,12 @@ const navGroups = [
       { path: '/customer-portfolio', label: 'Customer Portfolio', icon: Crosshair },
       { path: '/pricing-conditions', label: 'Pricing & Conditions', icon: DollarSign },
       { path: '/operations', label: 'Operations', icon: Activity },
+    ],
+  },
+  {
+    label: 'Pricing Tools',
+    items: [
+      { path: '/price-engine', label: 'Price Engine', icon: SlidersHorizontal },
     ],
   },
   {
