@@ -12,8 +12,8 @@ export default function InfoTooltip({ text }: { text: string }) {
     if (!btnRef.current) return
     const rect = btnRef.current.getBoundingClientRect()
     setPos({
-      top: rect.top + window.scrollY,
-      left: rect.left + rect.width / 2 + window.scrollX,
+      top: rect.top,
+      left: rect.left + rect.width / 2,
     })
   }, [])
 
