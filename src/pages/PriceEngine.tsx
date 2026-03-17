@@ -93,21 +93,30 @@ function SeverityBadge({ severity }: { severity: 'critical' | 'warning' | 'info'
 // ---------------------------------------------------------------------------
 function FieldAlertTooltip({ alert }: { alert: PriceEngineAlert }) {
   const [show, setShow] = useState(false)
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number; flipped: boolean } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
 
   const updatePos = useCallback(() => {
     if (!btnRef.current) return
     const rect = btnRef.current.getBoundingClientRect()
+    const tooltipH = tooltipRef.current?.offsetHeight || 160
+    const flipped = rect.top < tooltipH + 12
+    const tooltipW = 320
+    const centerX = rect.left + rect.width / 2
+    const minLeft = tooltipW / 2 + 8
+    const maxLeft = window.innerWidth - tooltipW / 2 - 8
     setPos({
-      top: rect.top,
-      left: rect.left + rect.width / 2,
+      top: flipped ? rect.bottom + 8 : rect.top - 8,
+      left: Math.max(minLeft, Math.min(maxLeft, centerX)),
+      flipped,
     })
   }, [])
 
   useEffect(() => {
     if (!show) return
     updatePos()
+    requestAnimationFrame(updatePos)
     window.addEventListener('scroll', updatePos, true)
     window.addEventListener('resize', updatePos)
     return () => {
@@ -130,11 +139,12 @@ function FieldAlertTooltip({ alert }: { alert: PriceEngineAlert }) {
       </button>
       {show && pos && createPortal(
         <div
+          ref={tooltipRef}
           className="fixed z-[9999] w-80 bg-white border border-amber-200 rounded-xl shadow-xl p-4 text-xs leading-relaxed font-normal pointer-events-none"
           style={{
-            top: pos.top - 8,
+            top: pos.top,
             left: pos.left,
-            transform: 'translate(-50%, -100%)',
+            transform: pos.flipped ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
           }}
         >
           <div className="flex items-center gap-1.5 mb-2">
@@ -152,7 +162,11 @@ function FieldAlertTooltip({ alert }: { alert: PriceEngineAlert }) {
               <span key={d} className="px-1.5 py-0.5 bg-bg-warm rounded text-[10px] text-text-muted">{d}</span>
             ))}
           </div>
-          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-white" />
+          {pos.flipped ? (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-0 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-white" />
+          ) : (
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-white" />
+          )}
         </div>,
         document.body
       )}
