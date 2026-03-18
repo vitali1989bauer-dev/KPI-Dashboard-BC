@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-K+S AgriMetrics — Power BI Template (.pbit) Generator  v2
+K+S MarginControl — Power BI Template (.pbit) Generator  v2
 ==========================================================
 Run:   python3 generate_pbit.py
-Output: KS_AgriMetrics_Dashboard.pbit
+Output: KS_MarginControl_Dashboard.pbit
 
 Double-click the .pbit file to open in Power BI Desktop.
 All data is embedded — no external files needed.
@@ -18,7 +18,7 @@ import struct
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")
-OUTPUT = os.path.join(SCRIPT_DIR, "KS_AgriMetrics_Dashboard.pbit")
+OUTPUT = os.path.join(SCRIPT_DIR, "KS_MarginControl_Dashboard.pbit")
 
 
 # ---------------------------------------------------------------------------
@@ -705,9 +705,9 @@ def generate():
     size_kb = os.path.getsize(OUTPUT) / 1024
     print(f"\nDone! Generated: {OUTPUT} ({size_kb:.0f} KB)")
     print("\nOpen the .pbit in Power BI Desktop:")
-    print("  1. Double-click KS_AgriMetrics_Dashboard.pbit")
+    print("  1. Double-click KS_MarginControl_Dashboard.pbit")
     print("  2. Click 'Load' when prompted")
-    print("  3. Apply theme: View > Themes > Browse > KS_AgriMetrics_Theme.json")
+    print("  3. Apply theme: View > Themes > Browse > KS_MarginControl_Theme.json")
 
 
 if __name__ == "__main__":

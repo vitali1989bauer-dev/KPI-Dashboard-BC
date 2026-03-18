@@ -59,7 +59,7 @@ function addPageFooter(doc: jsPDF, pageNum: number, totalPages: number, date: st
   doc.line(20, h - 18, w - 20, h - 18)
   doc.setFontSize(7.5)
   setTC(doc, GREY)
-  doc.text('K+S AgriMetrics — Confidential', 20, h - 12)
+  doc.text('K+S MarginControl — Confidential', 20, h - 12)
   doc.text(`Generated ${date}`, w / 2, h - 12, { align: 'center' })
   doc.text(`Page ${pageNum} of ${totalPages}`, w - 20, h - 12, { align: 'right' })
 }

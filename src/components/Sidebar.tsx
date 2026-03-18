@@ -63,7 +63,7 @@ export default function Sidebar() {
             <Sprout className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-[15px] leading-tight tracking-tight">K+S AgriMetrics</h1>
+            <h1 className="text-white font-bold text-[15px] leading-tight tracking-tight">K+S MarginControl</h1>
             <p className="text-white/40 text-[11px] font-medium">Fertilizer & Salt KPI</p>
           </div>
         </div>

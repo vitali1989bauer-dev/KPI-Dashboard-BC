@@ -1,8 +1,8 @@
 <# 
-  K+S AgriMetrics Dashboard — Power BI Template Generator
+  K+S MarginControl Dashboard — Power BI Template Generator
   ========================================================
   Double-click this script (or right-click → "Run with PowerShell")
-  to create: KS_AgriMetrics_Dashboard.pbit
+  to create: KS_MarginControl_Dashboard.pbit
   
   Then double-click the .pbit file to open in Power BI Desktop.
   All data is embedded — no external files needed.
@@ -215,12 +215,12 @@ function Expand-GzipBase64 {
 }
 
 # --- Build the .pbit using OPC packaging ---
-$outputPath = Join-Path $PSScriptRoot "KS_AgriMetrics_Dashboard.pbit"
+$outputPath = Join-Path $PSScriptRoot "KS_MarginControl_Dashboard.pbit"
 
 # Delete old file if exists
 if (Test-Path $outputPath) { Remove-Item $outputPath -Force }
 
-Write-Host "Creating K+S AgriMetrics Dashboard..." -ForegroundColor Cyan
+Write-Host "Creating K+S MarginControl Dashboard..." -ForegroundColor Cyan
 
 # Decompress all parts
 Write-Host "  Decompressing data model..."
