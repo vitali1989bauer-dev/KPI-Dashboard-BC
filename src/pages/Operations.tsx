@@ -1,244 +1,165 @@
+import { useMemo } from 'react'
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Area,
+  AreaChart,
 } from 'recharts'
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { getVolumeDeepDiveData, getCostDeepDiveData, getProductionSites } from '../data/mockData'
+import { getYoYByCategory, getCostVsPriceData, getTrendKpis, getMonthlyTrend } from '../data/mockData'
 import { useFilters } from '../FilterContext'
-import InfoTooltip from '../components/InfoTooltip'
 
-export default function Operations() {
+export default function Trends() {
   const { filters } = useFilters()
-  const volumeData = getVolumeDeepDiveData(filters)
-  const costData = getCostDeepDiveData(filters)
-  const productionSites = getProductionSites(filters)
-
-  // Volume summary
-  const totalActualVol = volumeData.reduce((sum, d) => sum + d.actual, 0)
-  const totalForecast = volumeData.reduce((sum, d) => sum + d.forecast, 0)
-  const fulfillment = ((totalActualVol / totalForecast) * 100).toFixed(1)
-
-  // Cost summary
-  const totalActualCost = costData.reduce((sum, d) => sum + d.actual, 0)
-  const totalBudget = costData.reduce((sum, d) => sum + d.budget, 0)
-  const totalVariance = totalActualCost - totalBudget
-  const totalVariancePct = ((totalVariance / totalBudget) * 100).toFixed(1)
+  const yoyData = useMemo(() => getYoYByCategory(filters), [filters])
+  const costVsPrice = useMemo(() => getCostVsPriceData(filters), [filters])
+  const kpis = useMemo(() => getTrendKpis(filters), [filters])
+  const _mt = getMonthlyTrend(filters); void _mt
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-text-primary">
-          Operations
-          <InfoTooltip text="Operational overview combining volume fulfillment tracking against forecast and last year, with cost efficiency analysis across all production and distribution categories." />
-        </h2>
-        <p className="text-sm text-text-secondary mt-1">
-          Volume fulfillment and cost efficiency across production &amp; distribution
-        </p>
+      {/* Sub-tabs */}
+      <div className="flex items-center gap-1 mb-6">
+        <button className="px-4 py-2 rounded-lg text-sm font-semibold bg-accent text-white">
+          Year-on-Year
+        </button>
+        <button className="px-4 py-2 rounded-lg text-sm font-medium text-text-muted hover:bg-bg-warm transition-colors cursor-pointer border border-border">
+          3-Year Trajectory
+        </button>
+        <button className="px-4 py-2 rounded-lg text-sm font-medium text-text-muted hover:bg-bg-warm transition-colors cursor-pointer border border-border">
+          Monthly Detail
+        </button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-card rounded-xl border border-border p-5 card-hover">
-          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Total Volume</p>
-          <p className="text-2xl font-bold text-text-primary">{(totalActualVol / 1000).toFixed(1)}k MT</p>
-        </div>
-        <div className="bg-card rounded-xl border border-border p-5 card-hover">
-          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Forecast Fulfillment</p>
-          <p className={`text-2xl font-bold ${Number(fulfillment) >= 95 ? 'text-positive' : Number(fulfillment) >= 90 ? 'text-warning' : 'text-negative'}`}>
-            {fulfillment}%
-          </p>
-        </div>
-        <div className="bg-card rounded-xl border border-border p-5 card-hover">
-          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Total Cost</p>
-          <p className="text-2xl font-bold text-text-primary">{totalActualCost.toFixed(1)} M&euro;</p>
-        </div>
-        <div className="bg-card rounded-xl border border-border p-5 card-hover">
-          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Cost Variance vs Budget</p>
-          <div className="flex items-center gap-2">
-            <p className={`text-2xl font-bold ${totalVariance > 0 ? 'text-negative' : 'text-positive'}`}>
-              {totalVariance > 0 ? '+' : ''}{totalVariancePct}%
+      {/* KPI Cards */}
+      <div className="grid grid-cols-5 gap-4 mb-6">
+        {kpis.map((kpi) => {
+          const accentBorder = {
+            red: 'border-t-negative',
+            blue: 'border-t-primary',
+            green: 'border-t-positive',
+            amber: 'border-t-warning',
+          }
+          return (
+            <div key={kpi.label} className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover`}>
+              <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
+              <p className={`text-3xl font-bold ${kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-primary'}`}>
+                {kpi.value}
+              </p>
+              <p className="text-xs text-text-muted mt-1">{kpi.subtitle}</p>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Charts side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* YoY by Material Category */}
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="mb-4">
+            <h3 className="text-sm font-bold text-text-primary">
+              Realization YoY — by Material Category
+            </h3>
+            <p className="text-xs text-text-muted mt-0.5">
+              2025 vs. 2026 YTD. Cat. 200 erosion most severe.
             </p>
-            {totalVariance > 0
-              ? <ArrowUpRight className="w-5 h-5 text-negative" />
-              : <ArrowDownRight className="w-5 h-5 text-positive" />}
+          </div>
+          <ResponsiveContainer width="100%" height={380}>
+            <BarChart data={yoyData} barGap={4}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+              <XAxis dataKey="category" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
+              <YAxis domain={[70, 100]} tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}%`} />
+              <Tooltip
+                formatter={(value) => [`${Number(value).toFixed(1)}%`]}
+                contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(26,35,50,0.08)', fontSize: '13px' }}
+              />
+              <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} iconType="square" iconSize={10} />
+              <Bar dataKey="priorYear" name="FY 2025" fill="#b8c2cf" radius={[6, 6, 0, 0]} maxBarSize={36} />
+              <Bar dataKey="currentYear" name="YTD 2026" fill="#4a6fa5" radius={[6, 6, 0, 0]} maxBarSize={36}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                label={(props: any) => {
+                  const { x, y, width, index } = props as { x: number; y: number; width: number; index: number }
+                  if (index == null || !yoyData[index]) return null
+                  const delta = yoyData[index].deltaPp
+                  if (Math.abs(delta) < 1) return null
+                  return (
+                    <text x={(x ?? 0) + (width ?? 0) / 2} y={(y ?? 0) - 8} textAnchor="middle" fill={delta >= 0 ? '#1a8754' : '#c43e3e'} fontSize={11} fontWeight={600}>
+                      {delta >= 0 ? '+' : ''}{delta.toFixed(0)}pp
+                    </text>
+                  )
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Cost vs Price Inflation */}
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="mb-4">
+            <h3 className="text-sm font-bold text-text-primary">
+              Cost vs. Price Inflation — Margin Squeeze
+            </h3>
+            <p className="text-xs text-text-muted mt-0.5">
+              Cost increases outpacing price. Shaded area = cumulative margin erosion.
+            </p>
+          </div>
+          <ResponsiveContainer width="100%" height={380}>
+            <AreaChart data={costVsPrice} margin={{ top: 10, right: 20, bottom: 5, left: 10 }}>
+              <defs>
+                <linearGradient id="marginGap" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#c43e3e" stopOpacity={0.15} />
+                  <stop offset="100%" stopColor="#c43e3e" stopOpacity={0.03} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
+              <XAxis dataKey="year" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v >= 0 ? '+' : ''}${v}%`} domain={[-1, 6]} />
+              <Tooltip
+                formatter={(value) => [`${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(1)}%`]}
+                contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(26,35,50,0.08)', fontSize: '13px' }}
+              />
+              <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} iconType="circle" iconSize={8} />
+              <Area
+                type="monotone"
+                dataKey="costChange"
+                name="Cost"
+                stroke="#c43e3e"
+                strokeWidth={2}
+                fill="url(#marginGap)"
+                dot={{ r: 4, fill: '#c43e3e', strokeWidth: 0 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="priceChange"
+                name="Price"
+                stroke="#173B7A"
+                strokeWidth={2}
+                dot={{ r: 4, fill: '#173B7A', strokeWidth: 0 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+
+          {/* Gap annotation */}
+          <div className="mt-2 text-center">
+            <span className="text-xs text-negative font-semibold">
+              Cumulative gap: ~{(costVsPrice[costVsPrice.length - 1]?.costChange - costVsPrice[costVsPrice.length - 1]?.priceChange).toFixed(1)}pp over 3 years
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Side-by-side Charts */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        {/* LEFT: Volume Trend Line Chart */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wide">
-            Monthly Volume Trend (MT)
-          </h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={volumeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={{ stroke: '#d5dbe3' }} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip
-                formatter={(value) => [`${Number(value).toLocaleString()} MT`]}
-                contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
-              />
-              <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="circle" iconSize={8} />
-              <Line type="monotone" dataKey="actual" name="Actual" stroke="#173B7A" strokeWidth={2.5} dot={{ r: 4, fill: '#173B7A' }} activeDot={{ r: 6 }} />
-              <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#1a8754" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3, fill: '#1a8754' }} />
-              <Line type="monotone" dataKey="lastYear" name="Last Year" stroke="#667885" strokeWidth={1.5} dot={{ r: 3, fill: '#667885' }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* RIGHT: Cost Horizontal Bar Chart */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wide">
-            Cost by Category (M&euro;) — Actual vs Budget
-          </h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={costData} layout="vertical" barGap={4}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 12, fill: '#4a5568' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}M\u20AC`} />
-              <YAxis type="category" dataKey="category" tick={{ fontSize: 11, fill: '#4a5568' }} axisLine={false} tickLine={false} width={130} />
-              <Tooltip
-                formatter={(value) => [`${Number(value).toFixed(1)} M€`]}
-                contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(23,59,122,0.08)', fontSize: '13px' }}
-              />
-              <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '12px' }} iconType="square" iconSize={10} />
-              <Bar dataKey="actual" name="Actual" fill="#173B7A" radius={[0, 6, 6, 0]} maxBarSize={24} />
-              <Bar dataKey="budget" name="Budget" fill="#b8c2cf" radius={[0, 6, 6, 0]} maxBarSize={24} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Production Site Performance */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
-            Production Site Performance
-            <InfoTooltip text="Key K+S production sites showing capacity utilization, output volumes, and cost efficiency. Bethune (Canada) is the newest potash mine with ramp-up phase cost premiums." />
-          </h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-bg-warm">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Site</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Location</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Product</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Utilization</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Output (MT)</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Cost/MT</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">vs Budget</th>
-                <th className="text-center px-5 py-3 text-xs font-semibold text-text-muted uppercase">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productionSites.map((site, idx) => {
-                const statusColor = site.status === 'on-track' ? 'text-positive bg-positive/10' : site.status === 'attention' ? 'text-warning bg-warning/10' : 'text-negative bg-negative/10'
-                const statusLabel = site.status === 'on-track' ? 'On Track' : site.status === 'attention' ? 'Attention' : 'Critical'
-                return (
-                  <tr key={site.site} className={`border-t border-border hover:bg-bg-warm/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
-                    <td className="px-5 py-3 text-sm font-semibold text-text-primary">{site.site}</td>
-                    <td className="px-5 py-3 text-sm text-text-secondary">{site.location}</td>
-                    <td className="px-5 py-3 text-sm text-text-secondary">{site.product}</td>
-                    <td className="px-5 py-3 text-sm text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 h-1.5 rounded-full bg-bg-warm overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${site.utilizationPct >= 85 ? 'bg-positive' : site.utilizationPct >= 75 ? 'bg-warning' : 'bg-negative'}`}
-                            style={{ width: `${Math.min(100, site.utilizationPct)}%` }}
-                          />
-                        </div>
-                        <span className="font-mono font-semibold text-text-primary">{site.utilizationPct.toFixed(1)}%</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-sm text-right font-mono text-text-primary">{(site.outputMT / 1000).toFixed(0)}k</td>
-                    <td className="px-5 py-3 text-sm text-right font-mono text-text-primary">&euro;{site.costPerMT.toFixed(1)}</td>
-                    <td className="px-5 py-3 text-sm text-right">
-                      <span className={`font-semibold ${site.costVsBudget > 0 ? 'text-negative' : 'text-positive'}`}>
-                        {site.costVsBudget > 0 ? '+' : ''}{site.costVsBudget.toFixed(1)}%
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-center">
-                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>
-                        {statusLabel}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Cost Variance Detail Table */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">Cost Variance Detail</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-bg-warm">
-                <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Category</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Actual (M&euro;)</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Budget (M&euro;)</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Variance (M&euro;)</th>
-                <th className="text-right px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Variance %</th>
-              </tr>
-            </thead>
-            <tbody>
-              {costData.map((row, idx) => (
-                <tr key={row.category} className={`border-t border-border hover:bg-bg-warm/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
-                  <td className="px-6 py-3.5 text-sm font-semibold text-text-primary">{row.category}</td>
-                  <td className="px-6 py-3.5 text-sm text-right font-mono text-text-primary">{row.actual.toFixed(1)}</td>
-                  <td className="px-6 py-3.5 text-sm text-right font-mono text-text-primary">{row.budget.toFixed(1)}</td>
-                  <td className="px-6 py-3.5 text-sm text-right">
-                    <span className={`font-semibold ${row.variance > 0 ? 'text-negative' : 'text-positive'}`}>
-                      {row.variance > 0 ? '+' : ''}{row.variance.toFixed(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-right">
-                    <span className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-xs ${
-                      row.variancePct > 2 ? 'bg-red-50 text-negative' :
-                      row.variancePct > 0 ? 'bg-amber-50 text-warning' :
-                      'bg-emerald-50 text-positive'
-                    }`}>
-                      {row.variancePct > 0 ? '+' : ''}{row.variancePct.toFixed(1)}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {/* Total Row */}
-              <tr className="border-t-2 border-border bg-bg-warm/70 font-bold">
-                <td className="px-6 py-3.5 text-sm font-bold text-text-primary">Total</td>
-                <td className="px-6 py-3.5 text-sm text-right font-mono font-bold text-text-primary">{totalActualCost.toFixed(1)}</td>
-                <td className="px-6 py-3.5 text-sm text-right font-mono font-bold text-text-primary">{totalBudget.toFixed(1)}</td>
-                <td className="px-6 py-3.5 text-sm text-right">
-                  <span className={`font-bold ${totalVariance > 0 ? 'text-negative' : 'text-positive'}`}>
-                    {totalVariance > 0 ? '+' : ''}{totalVariance.toFixed(1)}
-                  </span>
-                </td>
-                <td className="px-6 py-3.5 text-sm text-right">
-                  <span className={`font-bold ${Number(totalVariancePct) > 0 ? 'text-negative' : 'text-positive'}`}>
-                    {Number(totalVariancePct) > 0 ? '+' : ''}{totalVariancePct}%
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      {/* Insight Card */}
+      <div className="bg-card rounded-xl border border-border border-l-4 border-l-negative p-4">
+        <p className="text-sm font-bold text-text-primary">Cost outpacing price increases for 3rd consecutive year</p>
+        <p className="text-xs text-text-secondary mt-1">
+          Requires above-inflation price increases in next price round. Cat. 200–300 priority — lowest realization, highest cost sensitivity.
+        </p>
       </div>
     </div>
   )

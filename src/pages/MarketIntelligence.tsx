@@ -1,495 +1,191 @@
-import { TrendingUp, TrendingDown, Minus, Zap, DollarSign, Ship } from 'lucide-react'
+import { useMemo } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import {
-  AreaChart,
-  Area,
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
+  ReferenceLine,
+  Cell,
 } from 'recharts'
-import { getBenchmarkData, getInputCostData, getFxData, getMarketSignals, getCompetitorData } from '../data/mockData'
+import { getPeerBenchmark, getGreyMarketAlerts, getRegionalKpis } from '../data/mockData'
 import { useFilters } from '../FilterContext'
-import InfoTooltip from '../components/InfoTooltip'
 
-const COLORS = {
-  primary: '#173B7A',
-  positive: '#1a8754',
-  warning: '#d49a1a',
-  negative: '#c43e3e',
-  grey: '#667885',
-  grid: '#d5dbe3',
-  axisText: '#4a5568',
-}
-
-interface SummaryKpi {
-  label: string
-  value: string
-  change: number
-  changeLabel: string
-  icon: React.ReactNode
-  status: 'positive' | 'negative' | 'neutral'
-}
-
-function StatusArrow({ status }: { status: 'positive' | 'negative' | 'neutral' }) {
-  if (status === 'positive') return <TrendingUp className="w-4 h-4 text-positive" />
-  if (status === 'negative') return <TrendingDown className="w-4 h-4 text-negative" />
-  return <Minus className="w-4 h-4 text-text-muted" />
-}
-
-function formatChange(value: number, suffix = '%'): string {
-  const sign = value >= 0 ? '+' : ''
-  return `${sign}${value.toFixed(1)}${suffix}`
-}
-
-export default function MarketIntelligence() {
+export default function RegionalBenchmark() {
   const { filters } = useFilters()
-  const benchmarkData = getBenchmarkData(filters)
-  const inputCostData = getInputCostData(filters)
-  const fxData = getFxData(filters)
-  const marketSignals = getMarketSignals(filters)
-  const competitorData = getCompetitorData()
+  const { peerGroupName, countries } = useMemo(() => getPeerBenchmark(filters), [filters])
+  const greyAlerts = useMemo(() => getGreyMarketAlerts(filters), [filters])
+  const kpis = useMemo(() => getRegionalKpis(filters), [filters])
 
-  // Derive summary KPIs from the data
-  const latestBenchmark = benchmarkData[benchmarkData.length - 1]
-
-  const ksPremium = latestBenchmark
-    ? ((latestBenchmark.ksRealized - latestBenchmark.mopVancouver) / latestBenchmark.mopVancouver) * 100
-    : 0
-
-  const latestInputCost = inputCostData[inputCostData.length - 1]
-  const prevInputCost = inputCostData[inputCostData.length - 2]
-  const gasChange = prevInputCost
-    ? ((latestInputCost.naturalGas - prevInputCost.naturalGas) / prevInputCost.naturalGas) * 100
-    : 0
-
-  const latestFx = fxData[fxData.length - 1]
-  const prevFx = fxData[fxData.length - 2]
-  const fxChange = prevFx
-    ? ((latestFx.eurUsd - prevFx.eurUsd) / prevFx.eurUsd) * 100
-    : 0
-
-  const latestFreight = inputCostData[inputCostData.length - 1]
-  const prevFreight = inputCostData[inputCostData.length - 2]
-  const freightChange = prevFreight
-    ? ((latestFreight.freight - prevFreight.freight) / prevFreight.freight) * 100
-    : 0
-
-  const summaryKpis: SummaryKpi[] = [
-    {
-      label: 'K+S Premium vs Spot',
-      value: `${ksPremium.toFixed(1)}%`,
-      change: ksPremium - 5.0,
-      changeLabel: 'vs target 5%',
-      icon: <TrendingUp className="w-5 h-5 text-primary" />,
-      status: ksPremium >= 5 ? 'positive' : 'negative',
-    },
-    {
-      label: 'Gas Price (EUR/MWh)',
-      value: `€${latestInputCost.naturalGas.toFixed(1)}`,
-      change: gasChange,
-      changeLabel: 'vs prev month',
-      icon: <Zap className="w-5 h-5 text-warning" />,
-      status: gasChange <= 0 ? 'positive' : 'negative',
-    },
-    {
-      label: 'EUR/USD Rate',
-      value: latestFx.eurUsd.toFixed(3),
-      change: fxChange,
-      changeLabel: 'vs prev month',
-      icon: <DollarSign className="w-5 h-5 text-primary" />,
-      status: Math.abs(fxChange) < 1 ? 'neutral' : fxChange < 0 ? 'positive' : 'negative',
-    },
-    {
-      label: 'Freight Index',
-      value: latestFreight.freight.toFixed(0),
-      change: freightChange,
-      changeLabel: 'vs prev month',
-      icon: <Ship className="w-5 h-5 text-grey" />,
-      status: freightChange <= 0 ? 'positive' : 'negative',
-    },
-  ]
-
-  const signalBorderColor = (impact: 'positive' | 'negative' | 'neutral') => {
-    if (impact === 'positive') return 'border-l-positive'
-    if (impact === 'negative') return 'border-l-negative'
-    return 'border-l-primary'
-  }
-
-  const signalIcon = (impact: 'positive' | 'negative' | 'neutral') => {
-    if (impact === 'positive') return <TrendingUp className="w-4 h-4 text-positive flex-shrink-0" />
-    if (impact === 'negative') return <TrendingDown className="w-4 h-4 text-negative flex-shrink-0" />
-    return <Minus className="w-4 h-4 text-primary flex-shrink-0" />
-  }
-
-  // Custom tooltip for benchmark chart
-  const BenchmarkTooltipContent = ({ active, payload, label }: {
-    active?: boolean
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload?: Array<{ name: string; value: number; color: string; dataKey: string }>
-    label?: string
-  }) => {
-    if (!active || !payload || !payload.length) return null
-    return (
-      <div className="bg-white border border-border rounded-lg shadow-lg p-3 text-xs">
-        <p className="font-semibold text-text-primary mb-1.5">{label}</p>
-        {payload.map((entry) => (
-          <div key={entry.dataKey} className="flex items-center gap-2 py-0.5">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-            <span className="text-text-secondary">{entry.name}:</span>
-            <span className="font-semibold text-text-primary ml-auto">€{entry.value.toFixed(1)}</span>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  // Custom tooltip for input cost chart
-  const InputCostTooltipContent = ({ active, payload, label }: {
-    active?: boolean
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload?: Array<{ name: string; value: number; color: string; dataKey: string }>
-    label?: string
-  }) => {
-    if (!active || !payload || !payload.length) return null
-    return (
-      <div className="bg-white border border-border rounded-lg shadow-lg p-3 text-xs">
-        <p className="font-semibold text-text-primary mb-1.5">{label}</p>
-        {payload.map((entry) => (
-          <div key={entry.dataKey} className="flex items-center gap-2 py-0.5">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-            <span className="text-text-secondary">{entry.name}:</span>
-            <span className="font-semibold text-text-primary ml-auto">{entry.value.toFixed(1)} EUR/MWh</span>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  // Custom tooltip for FX chart
-  const FxTooltipContent = ({ active, payload, label }: {
-    active?: boolean
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload?: Array<{ name: string; value: number; color: string; dataKey: string }>
-    label?: string
-  }) => {
-    if (!active || !payload || !payload.length) return null
-    return (
-      <div className="bg-white border border-border rounded-lg shadow-lg p-3 text-xs">
-        <p className="font-semibold text-text-primary mb-1.5">{label}</p>
-        {payload.map((entry) => (
-          <div key={entry.dataKey} className="flex items-center gap-2 py-0.5">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-            <span className="text-text-secondary">{entry.name}:</span>
-            <span className="font-semibold text-text-primary ml-auto">{entry.value.toFixed(3)}</span>
-          </div>
-        ))}
-      </div>
-    )
-  }
+  const peerAvg = countries.reduce((s, c) => s + c.realizationPct, 0) / countries.length
+  const regionCode = filters.region.split(' · ')[1] || 'UK'
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-text-primary">Market Intelligence</h2>
-        <p className="text-sm text-text-secondary mt-1">
-          External benchmarks, input costs &amp; FX rates for pricing context
-        </p>
+      {/* Sub-tabs */}
+      <div className="flex items-center gap-1 mb-6">
+        <button className="px-4 py-2 rounded-lg text-sm font-semibold bg-accent text-white">
+          Peer Benchmark
+        </button>
+        <button className="px-4 py-2 rounded-lg text-sm font-medium text-text-muted hover:bg-bg-warm transition-colors cursor-pointer border border-border">
+          My Sub-Segments
+        </button>
       </div>
 
-      {/* Summary KPI Cards */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        {summaryKpis.map((kpi) => (
-          <div key={kpi.label} className="bg-card rounded-xl border border-border p-5 card-hover">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">{kpi.label}</p>
-              {kpi.icon}
+        {kpis.map((kpi) => {
+          const accentBorder = {
+            red: 'border-t-negative',
+            blue: 'border-t-primary',
+            green: 'border-t-positive',
+            amber: 'border-t-warning',
+          }
+          return (
+            <div key={kpi.label} className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover`}>
+              <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
+              <p className={`text-3xl font-bold ${kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-primary'}`}>
+                {kpi.value}
+              </p>
+              <p className="text-xs text-text-muted mt-1">{kpi.subtitle}</p>
             </div>
-            <p className="text-2xl font-bold text-text-primary">{kpi.value}</p>
-            <div className="flex items-center gap-1 mt-1">
-              <StatusArrow status={kpi.status} />
-              <span className={`text-xs font-semibold ${
-                kpi.status === 'positive' ? 'text-positive' : kpi.status === 'negative' ? 'text-negative' : 'text-text-muted'
-              }`}>
-                {formatChange(kpi.change)} {kpi.changeLabel}
-              </span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      {/* Main Benchmark Chart */}
-      <div className="bg-card rounded-xl border border-border p-6 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
-            Potash Price Benchmarks (€/MT)
-          </h3>
-          <InfoTooltip text="Monthly FOB/CFR benchmark prices for MOP (Muriate of Potash) from key export hubs compared to K+S realized pricing. Premium indicates K+S brand and quality positioning." />
-        </div>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={benchmarkData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
-              <defs>
-                <linearGradient id="ksRealizedGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={COLORS.positive} stopOpacity={0.15} />
-                  <stop offset="95%" stopColor={COLORS.positive} stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
+      {/* Main content: Bar chart + Margin table */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Peer Benchmark Chart — 2 cols */}
+        <div className="lg:col-span-2 bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center justify-between mb-1">
+            <div>
+              <h3 className="text-sm font-bold text-text-primary">
+                Realization Rate — {peerGroupName} Peer Benchmark
+              </h3>
+              <p className="text-xs text-text-muted mt-0.5">
+                {filters.segment} segment · {filters.timePeriod} 2026. {regionCode} user sees own bar (gold) + peer range. Raw peer transactions not visible (RLS).
+              </p>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold text-accent bg-accent/10">
+              Auto-matched peer group
+            </span>
+          </div>
+
+          <ResponsiveContainer width="100%" height={380}>
+            <BarChart data={countries} barCategoryGap="25%" margin={{ top: 30, right: 20, bottom: 10, left: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#d5dbe3" vertical={false} />
               <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: COLORS.axisText }}
-                axisLine={{ stroke: COLORS.grid }}
-                tickLine={{ stroke: COLORS.grid }}
+                dataKey="code"
+                tick={{ fontSize: 12, fill: '#4a5568' }}
+                axisLine={{ stroke: '#d5dbe3' }}
+                tickLine={false}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                tickFormatter={(v: string) => {
+                  const c = countries.find(c => c.code === v)
+                  return c?.isYou ? `${v} (You)` : v
+                }}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: COLORS.axisText }}
-                axisLine={{ stroke: COLORS.grid }}
-                tickLine={{ stroke: COLORS.grid }}
-                domain={['auto', 'auto']}
+                domain={[75, 90]}
+                tick={{ fontSize: 11, fill: '#4a5568' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v: number) => `${v}%`}
               />
-              <Tooltip content={<BenchmarkTooltipContent />} />
-              <Legend
-                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+              <Tooltip
+                formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Realization']}
+                contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', boxShadow: '0 4px 16px rgba(26,35,50,0.08)', fontSize: '13px' }}
               />
-              <Line
-                type="monotone"
-                dataKey="mopVancouver"
-                name="MOP Vancouver FOB"
-                stroke={COLORS.primary}
-                strokeWidth={2.5}
-                dot={false}
-                activeDot={{ r: 4 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="mopBaltic"
-                name="MOP Baltic"
-                stroke={COLORS.grey}
-                strokeWidth={1.5}
-                dot={false}
-                activeDot={{ r: 3 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="mopBrazil"
-                name="MOP Brazil CFR"
-                stroke={COLORS.warning}
-                strokeWidth={1.5}
-                dot={false}
-                activeDot={{ r: 3 }}
-              />
-              <Area
-                type="monotone"
-                dataKey="ksRealized"
-                name="K+S Realized Price"
-                stroke={COLORS.positive}
-                strokeWidth={2}
-                strokeDasharray="6 3"
-                fill="url(#ksRealizedGradient)"
-                dot={{ r: 3, fill: COLORS.positive, strokeWidth: 0 }}
-                activeDot={{ r: 5, fill: COLORS.positive }}
-              />
-            </AreaChart>
+              <ReferenceLine y={peerAvg} stroke="#667885" strokeDasharray="8 4" strokeWidth={1} label={{ value: `Peer avg ${peerAvg.toFixed(1)}%`, position: 'right', fontSize: 10, fill: '#667885' }} />
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <Bar dataKey="realizationPct" radius={[6, 6, 0, 0]} maxBarSize={52} label={(props: any) => {
+                const { x, y, width, index } = props as { x: number; y: number; width: number; index: number }
+                if (index == null || !countries[index]) return null
+                return (
+                  <text x={(x ?? 0) + (width ?? 0) / 2} y={(y ?? 0) - 8} textAnchor="middle" fill={countries[index].isYou ? '#c8960c' : '#1a2332'} fontSize={12} fontWeight={600}>
+                    {countries[index].realizationPct.toFixed(1)}%
+                  </text>
+                )
+              }}>
+                {countries.map((c, idx) => (
+                  <Cell key={idx} fill={c.isYou ? '#c8960c' : '#4a6fa5'} />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
-        </div>
-      </div>
 
-      {/* Two side-by-side charts */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        {/* Input Cost Tracker */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
-              Input Cost Tracker
-            </h3>
-            <InfoTooltip text="Natural gas TTF and electricity spot prices drive K+S production costs. Rising energy costs compress margins unless offset by price increases." />
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={inputCostData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 10, fill: COLORS.axisText }}
-                  axisLine={{ stroke: COLORS.grid }}
-                  tickLine={{ stroke: COLORS.grid }}
-                />
-                <YAxis
-                  yAxisId="gas"
-                  tick={{ fontSize: 10, fill: COLORS.axisText }}
-                  axisLine={{ stroke: COLORS.grid }}
-                  tickLine={{ stroke: COLORS.grid }}
-                  label={{ value: 'EUR/MWh', angle: -90, position: 'insideLeft', style: { fontSize: 10, fill: COLORS.axisText } }}
-                />
-                <YAxis
-                  yAxisId="elec"
-                  orientation="right"
-                  tick={{ fontSize: 10, fill: COLORS.axisText }}
-                  axisLine={{ stroke: COLORS.grid }}
-                  tickLine={{ stroke: COLORS.grid }}
-                  label={{ value: 'EUR/MWh', angle: 90, position: 'insideRight', style: { fontSize: 10, fill: COLORS.axisText } }}
-                />
-                <Tooltip content={<InputCostTooltipContent />} />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-                <Line
-                  yAxisId="gas"
-                  type="monotone"
-                  dataKey="naturalGas"
-                  name="Natural Gas TTF"
-                  stroke={COLORS.warning}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 3 }}
-                />
-                <Line
-                  yAxisId="elec"
-                  type="monotone"
-                  dataKey="electricity"
-                  name="Electricity"
-                  stroke={COLORS.negative}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {/* Grey market warning */}
+          {greyAlerts.length > 0 && (
+            <div className="mt-3 px-4 py-2 bg-negative/5 border border-negative/20 rounded-lg flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-negative flex-shrink-0" />
+              <p className="text-xs text-text-secondary">
+                <strong className="text-negative">{greyAlerts[0].country} ({greyAlerts[0].code})</strong>, not in peer group at {greyAlerts[0].realizationPct.toFixed(1)}% — grey market alert: price gap &gt;15% vs. {regionCode}
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* FX Impact */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
-              FX Impact
-            </h3>
-            <InfoTooltip text="EUR/USD affects USD-denominated potash trade competitiveness. EUR/BRL impacts pricing for Brazil — K+S's largest export market in South America." />
+        {/* Margin by Category Table */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="px-5 py-4 border-b border-border">
+            <h3 className="text-sm font-bold text-text-primary">Margin Benchmark by Category</h3>
+            <p className="text-xs text-text-muted mt-0.5">
+              Cat. 200 only. Spot where {regionCode} leaves money on table vs. {peerGroupName} leaders.
+            </p>
           </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={fxData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 10, fill: COLORS.axisText }}
-                  axisLine={{ stroke: COLORS.grid }}
-                  tickLine={{ stroke: COLORS.grid }}
-                />
-                <YAxis
-                  yAxisId="usd"
-                  tick={{ fontSize: 10, fill: COLORS.axisText }}
-                  axisLine={{ stroke: COLORS.grid }}
-                  tickLine={{ stroke: COLORS.grid }}
-                  domain={['auto', 'auto']}
-                  label={{ value: 'EUR/USD', angle: -90, position: 'insideLeft', style: { fontSize: 10, fill: COLORS.axisText } }}
-                />
-                <YAxis
-                  yAxisId="brl"
-                  orientation="right"
-                  tick={{ fontSize: 10, fill: COLORS.axisText }}
-                  axisLine={{ stroke: COLORS.grid }}
-                  tickLine={{ stroke: COLORS.grid }}
-                  domain={['auto', 'auto']}
-                  label={{ value: 'EUR/BRL', angle: 90, position: 'insideRight', style: { fontSize: 10, fill: COLORS.axisText } }}
-                />
-                <Tooltip content={<FxTooltipContent />} />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-                <Line
-                  yAxisId="usd"
-                  type="monotone"
-                  dataKey="eurUsd"
-                  name="EUR/USD"
-                  stroke={COLORS.primary}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 3 }}
-                />
-                <Line
-                  yAxisId="brl"
-                  type="monotone"
-                  dataKey="eurBrl"
-                  name="EUR/BRL"
-                  stroke={COLORS.positive}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Competitor Capacity Overview */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-border flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
-            Global Potash Competitor Landscape
-          </h3>
-          <InfoTooltip text="Major global potash producers and their current capacity status. Supply disruptions (Belarus, Russia sanctions) support K+S pricing power in European markets." />
-        </div>
-        <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-bg-warm">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Producer</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Region</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase">Capacity (MT/yr)</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">Status</th>
-                <th className="text-center px-5 py-3 text-xs font-semibold text-text-muted uppercase">Price Impact</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase">K+S Implication</th>
+                <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-text-muted uppercase">Country</th>
+                <th className="text-right px-3 py-2.5 text-[10px] font-semibold text-text-muted uppercase">Realiz.</th>
+                <th className="text-right px-3 py-2.5 text-[10px] font-semibold text-text-muted uppercase">GM%</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold text-text-muted uppercase">Flag</th>
               </tr>
             </thead>
             <tbody>
-              {competitorData.map((comp, idx) => (
-                <tr key={comp.producer} className={`border-t border-border hover:bg-bg-warm/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
-                  <td className="px-5 py-3 text-sm font-semibold text-text-primary">{comp.producer}</td>
-                  <td className="px-5 py-3 text-sm text-text-secondary">{comp.region}</td>
-                  <td className="px-5 py-3 text-sm text-right font-mono text-text-primary">{comp.capacityMT}</td>
-                  <td className="px-5 py-3 text-sm text-text-secondary">{comp.status}</td>
-                  <td className="px-5 py-3 text-center">
-                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      comp.priceImpact === 'bullish' ? 'text-positive bg-positive/10' :
-                      comp.priceImpact === 'bearish' ? 'text-negative bg-negative/10' :
-                      'text-text-muted bg-bg-warm'
-                    }`}>
-                      {comp.priceImpact === 'bullish' ? <TrendingUp className="w-3 h-3" /> : comp.priceImpact === 'bearish' ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
-                      {comp.priceImpact}
+              {countries.map((c, idx) => (
+                <tr key={c.code} className={`border-t border-border ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
+                  <td className="px-4 py-2.5 text-sm">
+                    <span className={`font-semibold ${c.isYou ? 'text-accent' : 'text-text-primary'}`}>
+                      {c.code} {c.name} {c.isYou ? '(You)' : ''}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-xs text-text-secondary leading-relaxed max-w-xs">{comp.note}</td>
+                  <td className="px-3 py-2.5 text-sm text-right font-mono font-semibold text-text-primary">{c.realizationPct.toFixed(1)}%</td>
+                  <td className="px-3 py-2.5 text-sm text-right font-mono font-semibold text-text-primary">{c.marginPct.toFixed(1)}%</td>
+                  <td className="px-3 py-2.5 text-sm">
+                    {c.flag === 'benchmark' && <span className="text-positive text-xs font-semibold">↑ Benchmark</span>}
+                    {c.flag === 'watch' && <span className="text-warning text-xs font-semibold">↓ Watch</span>}
+                    {c.flag === 'grey-market' && <span className="text-negative text-xs font-semibold">⚠ Grey mkt.</span>}
+                    {!c.flag && <span className="text-text-muted text-xs">—</span>}
+                  </td>
+                </tr>
+              ))}
+              {/* Grey market row */}
+              {greyAlerts.map(alert => (
+                <tr key={alert.code} className="border-t-2 border-negative/20 bg-negative/5">
+                  <td className="px-4 py-2.5 text-sm">
+                    <span className="font-semibold text-negative">{alert.code} {alert.country} ⚠</span>
+                  </td>
+                  <td className="px-3 py-2.5 text-sm text-right font-mono font-semibold text-negative">{alert.realizationPct.toFixed(1)}%</td>
+                  <td className="px-3 py-2.5 text-sm text-right font-mono font-semibold text-negative">{alert.marginPct.toFixed(1)}%</td>
+                  <td className="px-3 py-2.5 text-sm">
+                    <span className="text-negative text-xs font-semibold">⚠ Grey mkt.</span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
 
-      {/* Market Signals */}
-      <div className="bg-card rounded-xl border border-border p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
-            Market Signals
-          </h3>
-          <InfoTooltip text="Auto-derived pricing implications based on market benchmarks, input costs, FX movements, and competitive intelligence." />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          {marketSignals.map((signal, idx) => (
-            <div
-              key={idx}
-              className={`border border-border rounded-lg p-4 border-l-4 ${signalBorderColor(signal.impact)}`}
-            >
-              <div className="flex items-start gap-2 mb-2">
-                {signalIcon(signal.impact)}
-                <h4 className="text-sm font-semibold text-text-primary leading-tight">{signal.title}</h4>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed ml-6">{signal.description}</p>
+          {/* Grey market insight */}
+          {greyAlerts.length > 0 && (
+            <div className="m-4 p-3 bg-negative/5 border-l-4 border-l-negative rounded-r-lg">
+              <p className="text-xs font-bold text-text-primary">{greyAlerts[0].country} price gap creates re-export risk</p>
+              <p className="text-xs text-text-secondary mt-1">{greyAlerts[0].riskDescription}</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

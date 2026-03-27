@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  /* K+S Corporate – Blue (#173B7A) & Grey (#667885) */
-  --color-sidebar: #0f2654;
-  --color-sidebar-hover: #1a3468;
-  --color-sidebar-active: #0a1c40;
-  --color-primary: #173B7A;
-  --color-primary-light: #2a5199;
-  --color-accent: #667885;
-  --color-accent-light: #8a9baa;
-  --color-gold: #e8a317;
-  --color-gold-light: #f0c04a;
+  /* Voith Turbo — Navy & Gold */
+  --color-sidebar: #1a2332;
+  --color-sidebar-hover: #243044;
+  --color-sidebar-active: #0f1820;
+  --color-primary: #1a2332;
+  --color-primary-light: #2a3a52;
+  --color-accent: #c8960c;
+  --color-accent-light: #d4a82e;
+  --color-gold: #c8960c;
+  --color-gold-light: #d4a82e;
   --color-positive: #1a8754;
   --color-negative: #c43e3e;
   --color-warning: #d49a1a;
@@ -61,7 +61,7 @@
     transition: all 0.25s ease;
   }
   .card-hover:hover {
-    box-shadow: 0 8px 30px rgba(23, 59, 122, 0.06), 0 2px 8px rgba(23, 59, 122, 0.03);
+    box-shadow: 0 8px 30px rgba(26, 35, 50, 0.06), 0 2px 8px rgba(26, 35, 50, 0.03);
     border-color: var(--color-border-hover);
     transform: translateY(-1px);
   }
