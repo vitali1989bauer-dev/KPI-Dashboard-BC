@@ -13,7 +13,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts'
-import { getOverviewKpis, getPriceWaterfall, getLastMileDistribution, getVolumeByCategory, getMonthlyVolume, getRevenueBridge, getTransactionCount } from '../data/mockData'
+import { getExecSummaryKpis, getPriceWaterfall, getLastMileDistribution, getVolumeByCategory, getMonthlyVolume, getRevenueBridge, getTransactionCount } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 
 const TOTAL_COLOR = '#1a2332'
@@ -54,7 +54,7 @@ function buildWf(steps: { name: string; value: number; type: string }[]): WfPoin
 
 export default function ExecutiveSummary() {
   const { filters } = useFilters()
-  const kpis = useMemo(() => getOverviewKpis(filters), [filters])
+  const kpis = useMemo(() => getExecSummaryKpis(filters), [filters])
   const waterfallSteps = useMemo(() => getPriceWaterfall(filters), [filters])
   const wfData = useMemo(() => buildWf(waterfallSteps), [waterfallSteps])
   const lastMile = useMemo(() => getLastMileDistribution(filters), [filters])

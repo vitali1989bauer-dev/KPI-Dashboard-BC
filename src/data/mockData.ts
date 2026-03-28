@@ -18,6 +18,9 @@ export const matCatShort = ['Cat 100', 'Cat 200', 'Cat 300', 'Cat 400', 'Cat 500
 export const timePeriods = ['MTD', 'YTD', 'R12M', 'FY25']
 export const comparisonPeriods = ['Prior Year (PY)', 'Prior Quarter (PQ)', 'Budget']
 
+// Parts hierarchy: Scope → Category → Product Family → SKU
+export const partsScope = ['Global Parts', 'Local Parts', 'All Parts']
+
 export type UserRole = 'mc' | 'hq'
 
 export interface Filters {
@@ -28,6 +31,7 @@ export interface Filters {
   subSegment: string
   materialCategory: string
   comparisonPeriod: string
+  partsScope: string
   role: UserRole
 }
 
@@ -39,6 +43,7 @@ export const defaultFilters: Filters = {
   subSegment: 'Tugs',
   materialCategory: 'All Categories',
   comparisonPeriod: 'Prior Year (PY)',
+  partsScope: 'Global Parts',
   role: 'mc',
 }
 
@@ -120,7 +125,7 @@ export function getCellTransactionCount(f: Filters, catIdx: number, subIdx: numb
 }
 
 // ---------------------------------------------------------------------------
-// Overview — KPI Cards
+// KPI Cards — differentiated per page
 // ---------------------------------------------------------------------------
 export interface OverviewKpi {
   id: string
@@ -131,64 +136,59 @@ export interface OverviewKpi {
   accentColor: 'red' | 'blue' | 'green' | 'amber' | 'grey'
 }
 
-export function getOverviewKpis(f: Filters): OverviewKpi[] {
+// Page 1: Executive Summary — revenue/volume focused
+export function getExecSummaryKpis(f: Filters): OverviewKpi[] {
+  const rev = Math.round(vary(4920, f, 50))
+  const revPy = Math.round(vary(4680, f, 51))
+  const revDelta = Math.round((rev - revPy) / revPy * 1000) / 10
+  const qty = Math.round(vary(9870, f, 52))
+  const qtyPy = Math.round(vary(9340, f, 53))
+  const qtyDelta = Math.round((qty - qtyPy) / qtyPy * 1000) / 10
+  const netIdx = varyPct(81.4, f, 54)
+  const gm = varyPct(38.7, f, 55)
+  const gmPy = varyPct(38.3, f, 56)
+  const gmDelta = Math.round((gm - gmPy) * 10) / 10
+  const activeSku = Math.round(vary(2840, f, 57))
+
+  return [
+    { id: 'revenue', label: 'Revenue YTD', value: `£${(rev / 1000).toFixed(1)}M`, subtitle: `${revDelta >= 0 ? '▲' : '▼'} ${Math.abs(revDelta).toFixed(1)}%  vs. PY £${(revPy / 1000).toFixed(1)}M`, status: revDelta >= 0 ? 'positive' : 'negative', accentColor: revDelta >= 0 ? 'green' : 'red' },
+    { id: 'quantity', label: 'Quantity YTD', value: qty.toLocaleString(), subtitle: `${qtyDelta >= 0 ? '▲' : '▼'} ${Math.abs(qtyDelta).toFixed(1)}%  vs. PY`, status: qtyDelta >= 0 ? 'positive' : 'negative', accentColor: 'blue' },
+    { id: 'net-index', label: 'Net Price Index', value: netIdx.toFixed(1), subtitle: 'vs. Global List = 100', status: 'neutral', accentColor: 'blue' },
+    { id: 'gross-margin', label: 'Gross Margin', value: `${gm.toFixed(1)}%`, subtitle: `${gmDelta >= 0 ? '▲' : '▼'} ${Math.abs(gmDelta).toFixed(1)}pp  vs. PY`, status: gmDelta >= 0 ? 'positive' : 'negative', accentColor: gmDelta >= 0 ? 'green' : 'amber' },
+    { id: 'active-sku', label: 'Active SKUs', value: activeSku.toLocaleString(), subtitle: `across ${f.partsScope === 'All Parts' ? 'all' : f.partsScope.toLowerCase()}`, status: 'neutral', accentColor: 'grey' },
+  ]
+}
+
+// Page 2: Price Realization — realization/discount focused
+export function getRealizationKpis(f: Filters): OverviewKpi[] {
   const real = varyPct(81.4, f, 1)
   const realPy = varyPct(83.7, f, 2)
   const listCov = varyPct(74.2, f, 3)
   const listCovPy = varyPct(75.3, f, 4)
-  const gm = varyPct(38.7, f, 5)
-  const gmPy = varyPct(38.3, f, 6)
   const lastMile = varyPct(-8.8, f, 7)
   const lastMilePy = varyPct(-7.6, f, 8)
   const txn = Math.round(vary(1847, f, 9))
+  const below80 = Math.round(vary(8, f, 58))
 
   const realDelta = Math.round((real - realPy) * 10) / 10
   const listDelta = Math.round((listCov - listCovPy) * 10) / 10
-  const gmDelta = Math.round((gm - gmPy) * 10) / 10
   const lmDelta = Math.round((lastMile - lastMilePy) * 10) / 10
 
   return [
-    {
-      id: 'realization',
-      label: 'Realization Rate',
-      value: `${real.toFixed(1)}%`,
-      subtitle: `${realDelta >= 0 ? '▲' : '▼'} ${Math.abs(realDelta).toFixed(1)}pp  vs. PY ${realPy.toFixed(1)}%`,
-      status: realDelta >= 0 ? 'positive' : 'negative',
-      accentColor: realDelta >= 0 ? 'green' : 'red',
-    },
-    {
-      id: 'list-coverage',
-      label: 'List Price Coverage',
-      value: `${listCov.toFixed(1)}%`,
-      subtitle: `${listDelta >= 0 ? '▲' : '▼'} ${Math.abs(listDelta).toFixed(1)}pp  vs. PY ${listCovPy.toFixed(1)}%`,
-      status: listDelta >= 0 ? 'positive' : 'negative',
-      accentColor: 'blue',
-    },
-    {
-      id: 'gross-margin',
-      label: 'Gross Margin',
-      value: `${gm.toFixed(1)}%`,
-      subtitle: `${gmDelta >= 0 ? '▲' : '▼'} ${Math.abs(gmDelta).toFixed(1)}pp  vs. PY ${gmPy.toFixed(1)}%`,
-      status: gmDelta >= 0 ? 'positive' : 'negative',
-      accentColor: gmDelta >= 0 ? 'green' : 'amber',
-    },
-    {
-      id: 'last-mile',
-      label: 'Avg. Last-Mile Discount',
-      value: `${lastMile.toFixed(1)}%`,
-      subtitle: `${lmDelta <= 0 ? '▲' : '▼'} ${Math.abs(lmDelta).toFixed(1)}pp  vs. PY`,
+    { id: 'realization', label: 'Realization Rate', value: `${real.toFixed(1)}%`, subtitle: `${realDelta >= 0 ? '▲' : '▼'} ${Math.abs(realDelta).toFixed(1)}pp  vs. PY`, status: realDelta >= 0 ? 'positive' : 'negative', accentColor: realDelta >= 0 ? 'green' : 'red' },
+    { id: 'list-coverage', label: 'List Price Coverage', value: `${listCov.toFixed(1)}%`, subtitle: `${listDelta >= 0 ? '▲' : '▼'} ${Math.abs(listDelta).toFixed(1)}pp  vs. PY`, status: listDelta >= 0 ? 'positive' : 'negative', accentColor: 'blue' },
+    { id: 'last-mile', label: 'Avg. Last-Mile Discount', value: `${lastMile.toFixed(1)}%`, subtitle: `${lmDelta <= 0 ? '▲' : '▼'} ${Math.abs(lmDelta).toFixed(1)}pp  vs. PY`,
       status: lmDelta <= 0 ? 'positive' : 'negative',
       accentColor: lmDelta <= 0 ? 'green' : 'red',
     },
-    {
-      id: 'transactions',
-      label: 'Transactions YTD',
-      value: txn.toLocaleString(),
-      subtitle: `▲ +12%  vs. PY`,
-      status: 'positive',
-      accentColor: 'green',
-    },
+    { id: 'cells-below', label: 'Cells Below 80%', value: `${below80}`, subtitle: 'in heatmap — action required', status: below80 > 5 ? 'negative' : 'neutral', accentColor: below80 > 5 ? 'red' : 'grey' },
+    { id: 'transactions', label: 'Transactions', value: txn.toLocaleString(), subtitle: `${f.timePeriod}`, status: 'neutral', accentColor: 'grey' },
   ]
+}
+
+// Backward compat
+export function getOverviewKpis(f: Filters): OverviewKpi[] {
+  return getRealizationKpis(f)
 }
 
 // ---------------------------------------------------------------------------

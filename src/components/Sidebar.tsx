@@ -6,6 +6,7 @@ import {
   materialCategories,
   timePeriods,
   comparisonPeriods,
+  partsScope,
 } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 import { useState } from 'react'
@@ -165,6 +166,25 @@ export default function Sidebar() {
           disabled
         />
 
+        {/* Parts hierarchy: Scope → Category → Family → SKU */}
+        <div className="mt-2 mb-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-2">Parts Hierarchy</p>
+          <FilterDropdown
+            label="Scope"
+            options={partsScope}
+            value={filters.partsScope}
+            onChange={(v) => setFilter('partsScope', v)}
+          />
+          <FilterDropdown
+            label="Material Category"
+            options={materialCategories}
+            value={filters.materialCategory}
+            onChange={(v) => setFilter('materialCategory', v)}
+          />
+          <p className="text-[9px] text-text-muted mt-0.5 mb-1 px-0.5">Scope → Category → Family → SKU</p>
+        </div>
+
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mt-2 mb-2">Market Context</p>
         <FilterDropdown
           label="Segment"
           options={segments}
@@ -180,13 +200,6 @@ export default function Sidebar() {
           options={currentSubSegments}
           value={filters.subSegment}
           onChange={(v) => setFilter('subSegment', v)}
-        />
-
-        <FilterDropdown
-          label="Material Category"
-          options={materialCategories}
-          value={filters.materialCategory}
-          onChange={(v) => setFilter('materialCategory', v)}
         />
 
         {/* Time Period */}

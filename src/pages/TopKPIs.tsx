@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 // Icons removed — cleaner PowerBI-style cards
-import { getOverviewKpis, getRealizationHeatmap, getTopActionItems, getInsightCards, getCellTransactionCount, getTransactionCount, LOW_N_THRESHOLD } from '../data/mockData'
+import { getRealizationKpis, getRealizationHeatmap, getTopActionItems, getInsightCards, getCellTransactionCount, getTransactionCount, LOW_N_THRESHOLD } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 
-function KpiCard({ kpi, txn }: { kpi: ReturnType<typeof getOverviewKpis>[0]; txn?: { isLowN: boolean; isSuppressed: boolean; count: number } }) {
+function KpiCard({ kpi, txn }: { kpi: ReturnType<typeof getRealizationKpis>[0]; txn?: { isLowN: boolean; isSuppressed: boolean; count: number } }) {
   const subtitleColor = {
     positive: 'text-positive',
     negative: 'text-negative',
@@ -20,7 +20,7 @@ function KpiCard({ kpi, txn }: { kpi: ReturnType<typeof getOverviewKpis>[0]; txn
       <p className={`text-2xl font-bold ${isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-text-primary'}`}>
         {isSuppressed ? '—' : kpi.value}
       </p>
-      <p className={`text-xs mt-1 ${isLowN ? 'text-text-muted' : subtitleColor[kpi.status]}`}>
+      <p className={`text-xs mt-1 ${isLowN ? 'text-text-muted' : subtitleColor[kpi.status as keyof typeof subtitleColor] || 'text-text-muted'}`}>
         {isSuppressed ? 'Insufficient data' : kpi.subtitle}
       </p>
       {isLowN && !isSuppressed && (
@@ -56,7 +56,7 @@ function HeatmapCell({ value, txnCount, onClick }: { value: number; txnCount: { 
 export default function Overview() {
   const { filters } = useFilters()
   const navigate = useNavigate()
-  const kpis = useMemo(() => getOverviewKpis(filters), [filters])
+  const kpis = useMemo(() => getRealizationKpis(filters), [filters])
   const heatmap = useMemo(() => getRealizationHeatmap(filters), [filters])
   const actionItems = useMemo(() => getTopActionItems(filters), [filters])
   const insights = useMemo(() => getInsightCards(filters), [filters])
