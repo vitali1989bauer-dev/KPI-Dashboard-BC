@@ -857,3 +857,176 @@ export function get3YearTrajectory(f: Filters): TrajectoryPoint[] {
   })
   return result
 }
+
+// ---------------------------------------------------------------------------
+// Volume / Quantity Development — for Executive Summary
+// ---------------------------------------------------------------------------
+export interface VolumeByCategory {
+  category: string
+  currentQty: number
+  priorYearQty: number
+  deltaPct: number
+  revenueCurrentK: number
+  revenuePriorK: number
+  revDeltaPct: number
+}
+
+export function getVolumeByCategory(f: Filters): VolumeByCategory[] {
+  const base = [
+    { category: 'Cat 100', cq: 4200, pq: 4500, cr: 680, pr: 710 },
+    { category: 'Cat 200', cq: 2800, pq: 2400, cr: 920, pr: 840 },
+    { category: 'Cat 300', cq: 1600, pq: 1550, cr: 1100, pr: 1050 },
+    { category: 'Cat 400', cq: 850, pq: 820, cr: 1340, pr: 1280 },
+    { category: 'Cat 500', cq: 420, pq: 390, cr: 1680, pr: 1520 },
+  ]
+
+  return base.map((row, i) => {
+    const cq = Math.round(vary(row.cq, f, 1600 + i))
+    const pq = Math.round(vary(row.pq, f, 1610 + i))
+    const cr = Math.round(vary(row.cr, f, 1620 + i))
+    const pr = Math.round(vary(row.pr, f, 1630 + i))
+    return {
+      category: row.category,
+      currentQty: cq,
+      priorYearQty: pq,
+      deltaPct: Math.round((cq - pq) / pq * 1000) / 10,
+      revenueCurrentK: cr,
+      revenuePriorK: pr,
+      revDeltaPct: Math.round((cr - pr) / pr * 1000) / 10,
+    }
+  })
+}
+
+export interface MonthlyVolume {
+  month: string
+  quantity: number
+  quantityPY: number
+  revenueK: number
+  revenuePYK: number
+}
+
+export function getMonthlyVolume(f: Filters): MonthlyVolume[] {
+  const baseQty = [980, 1020, 1150, 1080, 1200, 950, 880, 920, 1100, 1050, 980, 900]
+  const baseQtyPY = [940, 980, 1100, 1040, 1150, 920, 850, 890, 1060, 1010, 950, 870]
+  const baseRev = [520, 540, 610, 570, 640, 500, 460, 490, 580, 560, 520, 480]
+  const baseRevPY = [480, 500, 570, 530, 600, 470, 430, 460, 540, 520, 490, 450]
+  const monthCount = f.timePeriod === 'MTD' ? 1 : f.timePeriod === 'YTD' ? 9 : 12
+
+  return ALL_MONTHS.slice(0, monthCount).map((month, i) => ({
+    month,
+    quantity: Math.round(vary(baseQty[i], f, 1700 + i)),
+    quantityPY: Math.round(vary(baseQtyPY[i], f, 1720 + i)),
+    revenueK: Math.round(vary(baseRev[i], f, 1740 + i)),
+    revenuePYK: Math.round(vary(baseRevPY[i], f, 1760 + i)),
+  }))
+}
+
+// ---------------------------------------------------------------------------
+// Price × Volume Decomposition — Revenue bridge
+// ---------------------------------------------------------------------------
+export interface RevenueBridge {
+  name: string
+  value: number
+  type: 'start' | 'end' | 'positive' | 'negative'
+}
+
+export function getRevenueBridge(f: Filters): RevenueBridge[] {
+  const pyRev = vary(4820, f, 1800)
+  const priceEffect = vary(-180, f, 1801)
+  const volumeEffect = vary(240, f, 1802)
+  const mixEffect = vary(85, f, 1803)
+  const fxEffect = vary(-42, f, 1804)
+  const cyRev = Math.round(pyRev + priceEffect + volumeEffect + mixEffect + fxEffect)
+
+  return [
+    { name: 'PY Revenue', value: pyRev, type: 'start' },
+    { name: 'Price\nEffect', value: priceEffect, type: priceEffect >= 0 ? 'positive' : 'negative' },
+    { name: 'Volume\nEffect', value: volumeEffect, type: volumeEffect >= 0 ? 'positive' : 'negative' },
+    { name: 'Mix\nEffect', value: mixEffect, type: mixEffect >= 0 ? 'positive' : 'negative' },
+    { name: 'FX\nEffect', value: fxEffect, type: fxEffect >= 0 ? 'positive' : 'negative' },
+    { name: 'CY Revenue', value: cyRev, type: 'end' },
+  ]
+}
+
+// ---------------------------------------------------------------------------
+// Cross-Reference — Full picture for a single part family
+// ---------------------------------------------------------------------------
+export interface CrossRefData {
+  partFamily: string
+  category: string
+  // Price
+  realizationPct: number
+  listPrice: number
+  segmentPrice: number
+  avgNetPrice: number
+  lastMilePct: number
+  // Margin
+  marginPct: number
+  marginPY: number
+  cogs: number
+  // Volume
+  quantityCY: number
+  quantityPY: number
+  qtyDeltaPct: number
+  // Revenue
+  revenueCYk: number
+  revenuePYk: number
+  revDeltaPct: number
+  // Trend (mini-series)
+  monthlyReal: number[]
+  monthlyQty: number[]
+  months: string[]
+  // Peers
+  peerAvgReal: number
+  peerBestReal: number
+  // Flags
+  transactionCount: number
+  isLowN: boolean
+}
+
+export function getCrossRefParts(f: Filters): CrossRefData[] {
+  const parts = [
+    { name: 'Coupling Plates', cat: 'Cat 200', lp: 185, sp: 162, np: 124, cogs: 78, real: 68, mgn: 22, mgnPy: 24, qCy: 820, qPy: 680, rCy: 102, rPy: 88, peerAvg: 76, peerBest: 82, txn: 82 },
+    { name: 'Sealing Rings', cat: 'Cat 200', lp: 42, sp: 37, np: 28, cogs: 18, real: 70, mgn: 18, mgnPy: 21, qCy: 1450, qPy: 1200, rCy: 41, rPy: 36, peerAvg: 75, peerBest: 81, txn: 65 },
+    { name: 'OS Oil Filters', cat: 'Cat 300', lp: 320, sp: 285, np: 221, cogs: 142, real: 72, mgn: 15, mgnPy: 18, qCy: 380, qPy: 350, rCy: 84, rPy: 78, peerAvg: 78, peerBest: 84, txn: 48 },
+    { name: 'Thrust Bearings', cat: 'Cat 400', lp: 890, sp: 802, np: 698, cogs: 385, real: 87, mgn: 42, mgnPy: 40, qCy: 145, qPy: 130, rCy: 101, rPy: 88, peerAvg: 85, peerBest: 89, txn: 34 },
+    { name: 'VSP Controls', cat: 'Cat 500', lp: 4200, sp: 3950, np: 3760, cogs: 1580, real: 95, mgn: 58, mgnPy: 56, qCy: 42, qPy: 38, rCy: 158, rPy: 138, peerAvg: 92, peerBest: 96, txn: 22 },
+    { name: 'Prop. Blades', cat: 'Cat 500', lp: 2800, sp: 2650, np: 2440, cogs: 1120, real: 92, mgn: 52, mgnPy: 50, qCy: 68, qPy: 62, rCy: 166, rPy: 148, peerAvg: 90, peerBest: 94, txn: 28 },
+    { name: 'Filter Elements', cat: 'Cat 200', lp: 65, sp: 57, np: 44, cogs: 28, real: 75, mgn: 20, mgnPy: 22, qCy: 1100, qPy: 980, rCy: 48, rPy: 44, peerAvg: 77, peerBest: 83, txn: 71 },
+    { name: 'Shaft Seals', cat: 'Cat 300', lp: 145, sp: 128, np: 108, cogs: 62, real: 84, mgn: 36, mgnPy: 35, qCy: 420, qPy: 400, rCy: 45, rPy: 42, peerAvg: 82, peerBest: 86, txn: 42 },
+    { name: 'Gear Wheels', cat: 'Cat 300', lp: 580, sp: 520, np: 432, cogs: 252, real: 83, mgn: 33, mgnPy: 32, qCy: 210, qPy: 195, rCy: 91, rPy: 82, peerAvg: 81, peerBest: 85, txn: 29 },
+    { name: 'Impeller Units', cat: 'Cat 500', lp: 3400, sp: 3200, np: 2980, cogs: 1340, real: 93, mgn: 55, mgnPy: 53, qCy: 55, qPy: 48, rCy: 164, rPy: 140, peerAvg: 91, peerBest: 95, txn: 18 },
+  ]
+
+  const baseMonthlyReal = [82, 81, 80, 81, 82, 81, 80, 81, 82]
+  const baseMonthlyQty = [90, 95, 110, 100, 115, 88, 82, 92, 105]
+
+  return parts.map((p, i) => {
+    const txn = Math.max(3, Math.round(vary(p.txn, f, 1900 + i)))
+    return {
+      partFamily: p.name,
+      category: p.cat,
+      realizationPct: varyPct(p.real, f, 1920 + i),
+      listPrice: Math.round(vary(p.lp, f, 1940 + i)),
+      segmentPrice: Math.round(vary(p.sp, f, 1960 + i)),
+      avgNetPrice: Math.round(vary(p.np, f, 1980 + i)),
+      lastMilePct: varyPct(-(100 - p.real) * 0.45, f, 2000 + i),
+      marginPct: varyPct(p.mgn, f, 2020 + i),
+      marginPY: varyPct(p.mgnPy, f, 2040 + i),
+      cogs: Math.round(vary(p.cogs, f, 2060 + i)),
+      quantityCY: Math.round(vary(p.qCy, f, 2080 + i)),
+      quantityPY: Math.round(vary(p.qPy, f, 2100 + i)),
+      qtyDeltaPct: Math.round((vary(p.qCy, f, 2080 + i) - vary(p.qPy, f, 2100 + i)) / vary(p.qPy, f, 2100 + i) * 1000) / 10,
+      revenueCYk: Math.round(vary(p.rCy, f, 2120 + i)),
+      revenuePYk: Math.round(vary(p.rPy, f, 2140 + i)),
+      revDeltaPct: Math.round((vary(p.rCy, f, 2120 + i) - vary(p.rPy, f, 2140 + i)) / vary(p.rPy, f, 2140 + i) * 1000) / 10,
+      monthlyReal: ALL_MONTHS.slice(0, 9).map((_, mi) => varyPct(baseMonthlyReal[mi] + (p.real - 81) * 0.3, f, 2200 + i * 12 + mi)),
+      monthlyQty: ALL_MONTHS.slice(0, 9).map((_, mi) => Math.round(vary(baseMonthlyQty[mi] * p.qCy / 900, f, 2300 + i * 12 + mi))),
+      months: ALL_MONTHS.slice(0, 9),
+      peerAvgReal: varyPct(p.peerAvg, f, 2400 + i),
+      peerBestReal: varyPct(p.peerBest, f, 2420 + i),
+      transactionCount: txn,
+      isLowN: txn < LOW_N_THRESHOLD,
+    }
+  })
+}

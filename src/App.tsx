@@ -2,11 +2,11 @@ import { Routes, Route } from 'react-router-dom'
 import { FilterProvider } from './FilterContext'
 import Sidebar from './components/Sidebar'
 import FilterBar from './components/FilterBar'
-import Overview from './pages/TopKPIs'
-import PriceWaterfall from './pages/SCOEffect'
+import ExecutiveSummary from './pages/SCOEffect'
+import PriceRealization from './pages/TopKPIs'
 import PartsDeepDive from './pages/CustomerPortfolio'
 import RegionalBenchmark from './pages/MarketIntelligence'
-import Trends from './pages/Operations'
+import CrossReference from './pages/CrossReference'
 
 export default function App() {
   return (
@@ -15,13 +15,13 @@ export default function App() {
         <Sidebar />
         <div className="ml-56">
           <FilterBar />
-          <main className="p-6 pb-20">
+          <main className="p-5 pb-16">
             <Routes>
-              <Route path="/" element={<Overview />} />
-              <Route path="/price-waterfall" element={<PriceWaterfall />} />
+              <Route path="/" element={<ExecutiveSummary />} />
+              <Route path="/price-realization" element={<PriceRealization />} />
               <Route path="/parts-deep-dive" element={<PartsDeepDive />} />
               <Route path="/regional-benchmark" element={<RegionalBenchmark />} />
-              <Route path="/trends" element={<Trends />} />
+              <Route path="/cross-reference" element={<CrossReference />} />
             </Routes>
           </main>
         </div>

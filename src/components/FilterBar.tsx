@@ -3,11 +3,11 @@ import { useFilters } from '../FilterContext'
 import type { UserRole } from '../data/mockData'
 
 const tabs = [
-  { path: '/', label: 'Overview', icon: '◆' },
-  { path: '/price-waterfall', label: 'Price Waterfall', icon: '▽' },
+  { path: '/', label: 'Executive Summary', icon: '▽' },
+  { path: '/price-realization', label: 'Price Realization', icon: '◆' },
   { path: '/parts-deep-dive', label: 'Parts Deep Dive', icon: '◉' },
   { path: '/regional-benchmark', label: 'Regional Benchmark', icon: '⊕' },
-  { path: '/trends', label: 'Trends', icon: '╱' },
+  { path: '/cross-reference', label: 'Cross-Reference', icon: '⊞' },
 ]
 
 export default function FilterBar() {
@@ -15,7 +15,7 @@ export default function FilterBar() {
 
   return (
     <>
-      {/* Top header bar — lighter, less dominant */}
+      {/* Top header bar */}
       <div className="bg-white border-b border-border px-6 py-2 flex items-center justify-between">
         <p className="text-sm font-medium text-text-muted">
           Spare Parts · Global Pricing Monitor
@@ -52,7 +52,7 @@ export default function FilterBar() {
         </div>
       </div>
 
-      {/* Bottom tab navigation — PowerBI-style */}
+      {/* Bottom tab navigation */}
       <div className="fixed bottom-0 left-56 right-0 bg-white border-t border-border z-40">
         <div className="flex items-center px-2 h-10">
           {tabs.map((tab) => (
