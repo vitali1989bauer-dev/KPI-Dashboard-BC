@@ -1,17 +1,10 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, Info, CheckCircle2 } from 'lucide-react'
+// Icons removed — cleaner PowerBI-style cards
 import { getOverviewKpis, getRealizationHeatmap, getTopActionItems, getInsightCards, getCellTransactionCount, getTransactionCount, LOW_N_THRESHOLD } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 
 function KpiCard({ kpi, txn }: { kpi: ReturnType<typeof getOverviewKpis>[0]; txn?: { isLowN: boolean; isSuppressed: boolean; count: number } }) {
-  const accentBorder = {
-    red: 'border-t-negative',
-    blue: 'border-t-primary',
-    green: 'border-t-positive',
-    amber: 'border-t-warning',
-    grey: 'border-t-accent',
-  }
   const subtitleColor = {
     positive: 'text-positive',
     negative: 'text-negative',
@@ -22,20 +15,16 @@ function KpiCard({ kpi, txn }: { kpi: ReturnType<typeof getOverviewKpis>[0]; txn
   const isSuppressed = txn?.isSuppressed ?? false
 
   return (
-    <div className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover relative ${isLowN ? 'opacity-60' : ''}`}>
-      <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
-      <p className={`text-3xl font-bold ${isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-text-primary'}`}>
+    <div className={`bg-card rounded-lg border border-border p-4 card-hover relative ${isLowN ? 'opacity-55' : ''}`}>
+      <p className="text-[11px] font-medium text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
+      <p className={`text-2xl font-bold ${isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-text-primary'}`}>
         {isSuppressed ? '—' : kpi.value}
       </p>
-      <p className={`text-xs mt-1 font-medium ${isLowN ? 'text-text-muted' : subtitleColor[kpi.status]}`}>
+      <p className={`text-xs mt-1 ${isLowN ? 'text-text-muted' : subtitleColor[kpi.status]}`}>
         {isSuppressed ? 'Insufficient data' : kpi.subtitle}
       </p>
       {isLowN && !isSuppressed && (
-        <div className="absolute top-2 right-2" title={`Based on ${txn?.count} transactions (< ${LOW_N_THRESHOLD})`}>
-          <span className="px-1.5 py-0.5 rounded bg-bg-warm text-[9px] font-bold text-text-muted border border-border">
-            n={txn?.count}
-          </span>
-        </div>
+        <span className="absolute top-2 right-2 px-1 py-0.5 rounded bg-bg-warm text-[9px] font-medium text-text-muted">n={txn?.count}</span>
       )}
     </div>
   )
@@ -87,7 +76,7 @@ export default function Overview() {
       {/* Main content: Heatmap + Action Items side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Heatmap — 2 cols */}
-        <div className="lg:col-span-2 bg-card rounded-xl border border-border overflow-hidden">
+        <div className="lg:col-span-2 bg-card rounded-lg border border-border overflow-hidden">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-text-primary">
@@ -144,7 +133,7 @@ export default function Overview() {
         </div>
 
         {/* Top Action Items */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-sm font-bold text-text-primary">Top Price Action Items</h3>
             <span className="px-2.5 py-1 rounded-full text-xs font-bold text-accent bg-accent/10">
@@ -181,20 +170,15 @@ export default function Overview() {
         </div>
       </div>
 
-      {/* Insight Cards */}
+      {/* Insight Cards — clean, minimal */}
       <div className="grid grid-cols-3 gap-4">
         {insights.map((insight, idx) => {
           const borderColor = insight.severity === 'warning' ? 'border-l-negative' : insight.severity === 'info' ? 'border-l-primary' : 'border-l-positive'
-          const Icon = insight.severity === 'warning' ? AlertTriangle : insight.severity === 'info' ? Info : CheckCircle2
-          const iconColor = insight.severity === 'warning' ? 'text-negative' : insight.severity === 'info' ? 'text-primary' : 'text-positive'
 
           return (
-            <div key={idx} className={`bg-card rounded-xl border border-border border-l-4 ${borderColor} p-4 card-hover`}>
-              <div className="flex items-start gap-2 mb-1.5">
-                <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${iconColor}`} />
-                <p className="text-sm font-bold text-text-primary leading-snug">{insight.title}</p>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed ml-6">{insight.description}</p>
+            <div key={idx} className={`bg-card rounded-lg border border-border border-l-3 ${borderColor} p-3.5`}>
+              <p className="text-[13px] font-semibold text-text-primary leading-snug mb-1">{insight.title}</p>
+              <p className="text-xs text-text-secondary leading-relaxed">{insight.description}</p>
             </div>
           )
         })}

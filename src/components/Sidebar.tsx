@@ -26,32 +26,32 @@ function FilterDropdown({
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="mb-3">
-      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40 block mb-1">{label}</label>
+    <div className="mb-2.5">
+      <label className="text-[10px] font-semibold uppercase tracking-wider text-text-muted block mb-1">{label}</label>
       <div className="relative">
         <button
           onClick={() => !disabled && setOpen(!open)}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm border transition-all ${
+          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-[13px] border transition-all ${
             disabled
-              ? 'bg-white/5 border-white/8 text-white/30 cursor-not-allowed'
-              : 'bg-white/8 border-white/12 text-white hover:bg-white/12 cursor-pointer'
+              ? 'bg-bg-warm border-border text-text-muted cursor-not-allowed'
+              : 'bg-white border-border text-text-primary hover:border-accent cursor-pointer'
           }`}
         >
           <span className="truncate">{value}</span>
-          <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 ml-1 transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3 h-3 flex-shrink-0 ml-1 text-text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
         {open && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[#243044] border border-white/15 rounded-lg shadow-xl shadow-black/30 py-1 z-50 max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg shadow-black/8 py-1 z-50 max-h-60 overflow-y-auto">
               {options.map((opt) => (
                 <button
                   key={opt}
                   onClick={() => { onChange(opt); setOpen(false) }}
-                  className={`w-full text-left px-3 py-1.5 text-sm transition-colors cursor-pointer ${
+                  className={`w-full text-left px-3 py-1.5 text-[13px] transition-colors cursor-pointer ${
                     value === opt
-                      ? 'text-accent font-semibold bg-white/8'
-                      : 'text-white/70 hover:bg-white/8 hover:text-white'
+                      ? 'text-accent font-semibold bg-accent/5'
+                      : 'text-text-secondary hover:bg-bg-warm'
                   }`}
                 >
                   {opt}
@@ -72,10 +72,10 @@ function TimePeriodTabs({ value, onChange }: { value: string; onChange: (v: stri
         <button
           key={period}
           onClick={() => onChange(period)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+          className={`px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
             value === period
               ? 'bg-accent text-white'
-              : 'bg-white/8 text-white/50 hover:bg-white/12 hover:text-white/80'
+              : 'bg-bg-warm text-text-muted hover:bg-border hover:text-text-primary'
           }`}
         >
           {period}
@@ -98,24 +98,22 @@ function PeerGroupPanel({ region, segment }: { region: string; segment: string }
   const regionCode = region.split(' · ')[1] || 'UK'
 
   return (
-    <div className="mt-4 pt-4 border-t border-white/8">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-accent mb-2">Benchmark Peer Group</p>
-      <div className="bg-white/5 rounded-lg border border-accent/30 p-3">
-        <div className="flex items-center gap-1.5 mb-1">
-          <span className="text-accent text-xs font-bold">AUTO-MATCHED: {peerGroup}</span>
-        </div>
-        <p className="text-[10px] text-white/40 mb-2">Based on {segment} segment. Edit below.</p>
-        <div className="flex flex-wrap gap-1.5">
+    <div className="mt-3 pt-3 border-t border-border">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-2">Benchmark Peer Group</p>
+      <div className="bg-white rounded-lg border border-accent/25 p-2.5">
+        <p className="text-accent text-[10px] font-bold mb-1">AUTO-MATCHED: {peerGroup}</p>
+        <p className="text-[10px] text-text-muted mb-2">Based on {segment} segment.</p>
+        <div className="flex flex-wrap gap-1">
           {peers.map((peer) => {
             const code = peer.split(' ')[1]
             const isActive = code === regionCode.toUpperCase()
             return (
               <span
                 key={peer}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                   isActive
                     ? 'bg-accent text-white'
-                    : 'bg-white/10 text-white/50'
+                    : 'bg-bg-warm text-text-muted border border-border'
                 }`}
               >
                 {peer}
@@ -123,9 +121,6 @@ function PeerGroupPanel({ region, segment }: { region: string; segment: string }
             )
           })}
         </div>
-        <button className="mt-2 text-[10px] text-accent/70 hover:text-accent transition-colors cursor-pointer">
-          + Add country to benchmark
-        </button>
       </div>
     </div>
   )
@@ -133,28 +128,26 @@ function PeerGroupPanel({ region, segment }: { region: string; segment: string }
 
 export default function Sidebar() {
   const { filters, setFilter } = useFilters()
-
-  // Get sub-segments for current segment
   const currentSubSegments = subSegments[filters.segment] || subSegments['Marine']
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-56 bg-gradient-to-b from-sidebar to-[#0f1820] flex flex-col z-50 overflow-y-auto">
-      {/* Logo / Brand */}
-      <div className="px-4 py-4 border-b border-white/8">
+    <aside className="fixed left-0 top-0 h-screen w-56 bg-sidebar border-r border-border flex flex-col z-50 overflow-y-auto">
+      {/* Logo / Brand — dark header strip */}
+      <div className="px-4 py-3 bg-primary">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shadow-lg shadow-accent/30 text-white font-bold text-sm">
+          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-[11px]">
             VT
           </div>
           <div>
-            <h1 className="text-white font-bold text-[14px] leading-tight tracking-tight">VOITH TURBO</h1>
-            <p className="text-accent/80 text-[10px] font-semibold tracking-wider">PRICING INTELLIGENCE</p>
+            <h1 className="text-white font-bold text-[13px] leading-tight">VOITH TURBO</h1>
+            <p className="text-accent text-[9px] font-semibold tracking-wider">PRICING INTELLIGENCE</p>
           </div>
         </div>
       </div>
 
-      {/* MY CONTEXT filters */}
-      <div className="px-4 py-4 flex-1">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3">My Context</p>
+      {/* Filters */}
+      <div className="px-3 py-3 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-2">My Context</p>
 
         <FilterDropdown
           label="Region (pre-filtered)"
@@ -197,14 +190,13 @@ export default function Sidebar() {
         />
 
         {/* Time Period */}
-        <div className="mt-4 pt-4 border-t border-white/8">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-2">Time Period</p>
+        <div className="mt-3 pt-3 border-t border-border">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-2">Time Period</p>
           <TimePeriodTabs
             value={filters.timePeriod}
             onChange={(v) => setFilter('timePeriod', v)}
           />
-
-          <div className="mt-3">
+          <div className="mt-2">
             <FilterDropdown
               label="vs. Period"
               options={comparisonPeriods}
@@ -214,16 +206,7 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Peer Group */}
         <PeerGroupPanel region={filters.region} segment={filters.segment} />
-      </div>
-
-      {/* Status */}
-      <div className="px-4 py-3 border-t border-white/8">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-          <span className="text-[10px] text-white/30 font-medium">Mock Data</span>
-        </div>
       </div>
     </aside>
   )

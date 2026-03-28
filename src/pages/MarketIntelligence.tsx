@@ -56,9 +56,9 @@ export default function RegionalBenchmark() {
             amber: 'border-t-warning',
           }
           return (
-            <div key={kpi.label} className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover ${txn.isLowN ? 'opacity-60' : ''}`}>
+            <div key={kpi.label} className={`bg-card rounded-lg border border-border ${accentBorder[kpi.accentColor]} p-4 card-hover ${txn.isLowN ? 'opacity-60' : ''}`}>
               <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
-              <p className={`text-3xl font-bold ${txn.isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-primary'}`}>
+              <p className={`text-2xl font-bold ${txn.isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-primary'}`}>
                 {txn.isSuppressed ? '—' : kpi.value}
               </p>
               <p className="text-xs text-text-muted mt-1">{txn.isSuppressed ? 'Insufficient data' : kpi.subtitle}</p>
@@ -73,7 +73,7 @@ export default function RegionalBenchmark() {
       {/* TAB: Peer Benchmark */}
       {activeTab === 'peer' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2 bg-card rounded-xl border border-border p-6">
+          <div className="lg:col-span-2 bg-card rounded-lg border border-border p-6">
             <div className="flex items-center justify-between mb-1">
               <div>
                 <h3 className="text-sm font-bold text-text-primary">
@@ -135,7 +135,7 @@ export default function RegionalBenchmark() {
           </div>
 
           {/* Margin by Category Table */}
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
             <div className="px-5 py-4 border-b border-border">
               <h3 className="text-sm font-bold text-text-primary">Margin Benchmark by Category</h3>
               <p className="text-xs text-text-muted mt-0.5">
@@ -196,7 +196,7 @@ export default function RegionalBenchmark() {
 
       {/* TAB: My Sub-Segments */}
       {activeTab === 'subsegments' && (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
             <h3 className="text-sm font-bold text-text-primary">Sub-Segment Performance — {filters.segment}</h3>
             <p className="text-xs text-text-muted mt-0.5">Realization and margin by sub-segment within your selected segment. Low-n rows shown at reduced opacity.</p>

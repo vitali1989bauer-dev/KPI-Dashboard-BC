@@ -61,9 +61,9 @@ function KpiCard({ kpi, txn }: { kpi: ReturnType<typeof getWaterfallKpis>[0]; tx
   const isSuppressed = txn?.isSuppressed ?? false
 
   return (
-    <div className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover ${isLowN ? 'opacity-60' : ''}`}>
+    <div className={`bg-card rounded-lg border border-border ${accentBorder[kpi.accentColor]} p-4 card-hover ${isLowN ? 'opacity-60' : ''}`}>
       <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
-      <p className={`text-3xl font-bold ${isSuppressed ? 'text-text-muted' : kpi.accentColor === 'red' ? 'text-negative' : kpi.accentColor === 'green' ? 'text-positive' : 'text-text-primary'}`}>
+      <p className={`text-2xl font-bold ${isSuppressed ? 'text-text-muted' : kpi.accentColor === 'red' ? 'text-negative' : kpi.accentColor === 'green' ? 'text-positive' : 'text-text-primary'}`}>
         {isSuppressed ? '—' : kpi.value}
       </p>
       <p className="text-xs text-text-muted mt-1">{isSuppressed ? 'Insufficient data' : kpi.subtitle}</p>
@@ -97,7 +97,7 @@ export default function PriceWaterfall() {
       {/* Waterfall + Last-Mile side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Waterfall Chart — 2 cols */}
-        <div className="lg:col-span-2 bg-card rounded-xl border border-border p-6">
+        <div className="lg:col-span-2 bg-card rounded-lg border border-border p-6">
           <div className="mb-4">
             <h3 className="text-sm font-bold text-text-primary">
               Price Waterfall — {filters.region} {filters.segment} {filters.subSegment !== 'All Sub-Segments' ? filters.subSegment : ''} · Average Transaction
@@ -147,7 +147,7 @@ export default function PriceWaterfall() {
         </div>
 
         {/* Last-Mile Discount Distribution */}
-        <div className="bg-card rounded-xl border border-border p-6">
+        <div className="bg-card rounded-lg border border-border p-6">
           <div className="mb-4">
             <h3 className="text-sm font-bold text-text-primary">Last-Mile Discount Distribution</h3>
             <p className="text-xs text-text-muted mt-0.5">By material category — where is discretionary discount highest?</p>

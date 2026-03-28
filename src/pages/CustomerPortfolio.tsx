@@ -32,7 +32,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   if (!active || !payload?.[0]) return null
   const d = payload[0].payload
   return (
-    <div className="bg-white border border-border rounded-xl shadow-lg p-3.5 text-sm min-w-[200px]">
+    <div className="bg-white border border-border rounded-lg shadow-lg p-3.5 text-sm min-w-[200px]">
       <p className="font-bold text-text-primary mb-1">{d.name}</p>
       <div className="space-y-0.5 text-text-secondary text-xs">
         <p>Category: <span className="font-semibold">{d.category}</span></p>
@@ -90,9 +90,9 @@ export default function PartsDeepDive() {
       {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className={`bg-card rounded-xl border border-border border-t-3 ${kpi.status === 'negative' ? 'border-t-negative' : kpi.status === 'positive' ? 'border-t-positive' : 'border-t-primary'} p-5 card-hover ${txn.isLowN ? 'opacity-60' : ''}`}>
+          <div key={kpi.label} className={`bg-card rounded-lg border border-border ${kpi.status === 'negative' ? 'border-t-negative' : kpi.status === 'positive' ? 'border-t-positive' : 'border-t-primary'} p-4 card-hover ${txn.isLowN ? 'opacity-60' : ''}`}>
             <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
-            <p className={`text-3xl font-bold ${txn.isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-primary'}`}>
+            <p className={`text-2xl font-bold ${txn.isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-primary'}`}>
               {txn.isSuppressed ? '—' : kpi.value}
             </p>
             <p className="text-xs text-text-muted mt-1">{txn.isSuppressed ? 'Insufficient data' : kpi.subtitle}</p>
@@ -105,7 +105,7 @@ export default function PartsDeepDive() {
 
       {/* TAB: Scatter */}
       {activeTab === 'scatter' && (
-        <div className="bg-card rounded-xl border border-border p-6">
+        <div className="bg-card rounded-lg border border-border p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-text-primary">
@@ -155,7 +155,7 @@ export default function PartsDeepDive() {
 
       {/* TAB: Discount Variance */}
       {activeTab === 'discount' && (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
             <h3 className="text-sm font-bold text-text-primary">Discount Variance — Approved vs. Actual</h3>
             <p className="text-xs text-text-muted mt-0.5">Sorted by largest negative variance. Red = authority exceeded.</p>
@@ -208,7 +208,7 @@ export default function PartsDeepDive() {
 
       {/* TAB: Priority Matrix — Scatter chart (PowerBI-native) + table */}
       {activeTab === 'priority' && (
-        <div className="bg-card rounded-xl border border-border p-6">
+        <div className="bg-card rounded-lg border border-border p-6">
           <div className="mb-4">
             <h3 className="text-sm font-bold text-text-primary">Priority Matrix — Realization Gap vs. Revenue at Risk</h3>
             <p className="text-xs text-text-muted mt-0.5">
@@ -256,10 +256,10 @@ export default function PartsDeepDive() {
 
       {/* TAB: Part Detail */}
       {activeTab === 'detail' && (
-        <div className="bg-card rounded-xl border border-border p-6">
+        <div className="bg-card rounded-lg border border-border p-6">
           <h3 className="text-sm font-bold text-text-primary mb-2">Part Family Detail View</h3>
           <p className="text-xs text-text-muted mb-4">Select a part family from the scatter chart or tables to see detailed price history, discount log, and recommendations.</p>
-          <div className="bg-bg-warm rounded-xl border border-border p-8 text-center">
+          <div className="bg-bg-warm rounded-lg border border-border p-8 text-center">
             <p className="text-text-muted text-sm">Click a bubble in "Margin vs. Realization" or a row in other tabs to drill into part-level detail.</p>
             <p className="text-text-muted text-xs mt-2">In PowerBI: this will be a drill-through page triggered by clicking any part family across the report.</p>
           </div>

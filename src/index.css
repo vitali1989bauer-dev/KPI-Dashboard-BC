@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* Voith Turbo — Navy & Gold */
-  --color-sidebar: #1a2332;
-  --color-sidebar-hover: #243044;
-  --color-sidebar-active: #0f1820;
+  /* Voith Turbo — lighter palette, PowerBI-aligned */
+  --color-sidebar: #f7f8fa;
+  --color-sidebar-hover: #ebeef2;
+  --color-sidebar-active: #e2e6ec;
   --color-primary: #1a2332;
   --color-primary-light: #2a3a52;
   --color-accent: #c8960c;
@@ -15,13 +15,13 @@
   --color-negative: #c43e3e;
   --color-warning: #d49a1a;
   --color-card: #ffffff;
-  --color-bg: #f4f6f8;
-  --color-bg-warm: #ebeef2;
-  --color-border: #d5dbe3;
-  --color-border-hover: #b8c2cf;
+  --color-bg: #f0f2f5;
+  --color-bg-warm: #e8ebf0;
+  --color-border: #dde1e8;
+  --color-border-hover: #c5cbd5;
   --color-text-primary: #1a2332;
   --color-text-secondary: #4a5568;
-  --color-text-muted: #667885;
+  --color-text-muted: #8492a6;
 }
 
 @layer base {
@@ -30,16 +30,17 @@
   }
 
   body {
-    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--color-bg);
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    font-size: 14px;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
 
   ::-webkit-scrollbar-track {
@@ -47,22 +48,20 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #b8c2cf;
+    background: #c5cbd5;
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #667885;
+    background: #8492a6;
   }
 }
 
 @layer components {
   .card-hover {
-    transition: all 0.25s ease;
+    transition: box-shadow 0.2s ease;
   }
   .card-hover:hover {
-    box-shadow: 0 8px 30px rgba(26, 35, 50, 0.06), 0 2px 8px rgba(26, 35, 50, 0.03);
-    border-color: var(--color-border-hover);
-    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(26, 35, 50, 0.06);
   }
 }

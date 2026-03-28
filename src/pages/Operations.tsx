@@ -63,9 +63,9 @@ export default function Trends() {
             amber: 'border-t-warning',
           }
           return (
-            <div key={kpi.label} className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover ${txn.isLowN ? 'opacity-60' : ''}`}>
+            <div key={kpi.label} className={`bg-card rounded-lg border border-border ${accentBorder[kpi.accentColor]} p-4 card-hover ${txn.isLowN ? 'opacity-60' : ''}`}>
               <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
-              <p className={`text-3xl font-bold ${txn.isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-primary'}`}>
+              <p className={`text-2xl font-bold ${txn.isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-primary'}`}>
                 {txn.isSuppressed ? '—' : kpi.value}
               </p>
               <p className="text-xs text-text-muted mt-1">{txn.isSuppressed ? 'Insufficient data' : kpi.subtitle}</p>
@@ -81,7 +81,7 @@ export default function Trends() {
       {activeTab === 'yoy' && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div className="bg-card rounded-xl border border-border p-6">
+            <div className="bg-card rounded-lg border border-border p-6">
               <div className="mb-4">
                 <h3 className="text-sm font-bold text-text-primary">Realization YoY — by Material Category</h3>
                 <p className="text-xs text-text-muted mt-0.5">2025 vs. 2026 YTD. Cat. 200 erosion most severe.</p>
@@ -112,7 +112,7 @@ export default function Trends() {
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-card rounded-xl border border-border p-6">
+            <div className="bg-card rounded-lg border border-border p-6">
               <div className="mb-4">
                 <h3 className="text-sm font-bold text-text-primary">Cost vs. Price Inflation — Margin Squeeze</h3>
                 <p className="text-xs text-text-muted mt-0.5">Cost increases outpacing price. Shaded area = cumulative margin erosion.</p>
@@ -148,7 +148,7 @@ export default function Trends() {
             const gap = latest ? (latest.costChange - latest.priceChange).toFixed(1) : '0.9'
             const gapYears = costVsPrice.filter(d => d.costChange > d.priceChange).length
             return (
-              <div className="bg-card rounded-xl border border-border border-l-4 border-l-negative p-4">
+              <div className="bg-card rounded-lg border border-border border-l-4 border-l-negative p-4">
                 <p className="text-sm font-bold text-text-primary">
                   Cost outpacing price for {gapYears} consecutive year{gapYears !== 1 ? 's' : ''} (+{gap}pp cumulative gap)
                 </p>
@@ -163,7 +163,7 @@ export default function Trends() {
 
       {/* TAB: 3-Year Trajectory */}
       {activeTab === 'trajectory' && (
-        <div className="bg-card rounded-xl border border-border p-6">
+        <div className="bg-card rounded-lg border border-border p-6">
           <div className="mb-4">
             <h3 className="text-sm font-bold text-text-primary">3-Year Realization & Margin Trajectory</h3>
             <p className="text-xs text-text-muted mt-0.5">Monthly view Jan 2024 – Sep 2026. Shows long-term pricing trend and seasonal patterns.</p>
@@ -215,7 +215,7 @@ export default function Trends() {
 
       {/* TAB: Monthly Detail */}
       {activeTab === 'monthly' && (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
             <h3 className="text-sm font-bold text-text-primary">Monthly KPI Detail — {filters.timePeriod} 2026</h3>
             <p className="text-xs text-text-muted mt-0.5">Month-by-month realization, margin, and last-mile discount tracking.</p>
