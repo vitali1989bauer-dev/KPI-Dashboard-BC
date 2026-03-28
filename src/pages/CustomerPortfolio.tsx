@@ -27,13 +27,6 @@ const COLORS = {
   muted: '#667885',
 }
 
-const QUADRANT_COLORS: Record<string, string> = {
-  'quick-win': '#c43e3e',
-  'strategic': '#c8960c',
-  'monitor': '#173B7A',
-  'low-priority': '#667885',
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: PartFamilyPoint }> }) {
   if (!active || !payload?.[0]) return null
@@ -213,59 +206,50 @@ export default function PartsDeepDive() {
         </div>
       )}
 
-      {/* TAB: Priority Matrix */}
+      {/* TAB: Priority Matrix — Scatter chart (PowerBI-native) + table */}
       {activeTab === 'priority' && (
         <div className="bg-card rounded-xl border border-border p-6">
           <div className="mb-4">
             <h3 className="text-sm font-bold text-text-primary">Priority Matrix — Realization Gap vs. Revenue at Risk</h3>
-            <p className="text-xs text-text-muted mt-0.5">Quick wins = high gap + high revenue. Focus pricing actions here first.</p>
+            <p className="text-xs text-text-muted mt-0.5">
+              Top-right = quick wins (high gap + high revenue). PowerBI: scatter chart with reference lines at gap=8pp and revenue=£300k.
+            </p>
           </div>
 
-          {/* Quadrant legend */}
-          <div className="flex items-center gap-5 mb-5">
-            {[
-              { q: 'quick-win', label: 'Quick Win (high gap, high rev)' },
-              { q: 'strategic', label: 'Strategic (high gap, lower rev)' },
-              { q: 'monitor', label: 'Monitor (lower gap, high rev)' },
-              { q: 'low-priority', label: 'Low Priority' },
-            ].map(({ q, label }) => (
-              <div key={q} className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: QUADRANT_COLORS[q] }} />
-                <span className="text-xs text-text-muted">{label}</span>
-              </div>
-            ))}
-          </div>
+          {/* Scatter: gap (X) vs revenue (Y) */}
+          <ResponsiveContainer width="100%" height={380}>
+            <ScatterChart margin={{ top: 20, right: 30, bottom: 30, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
+              <XAxis type="number" dataKey="realizationGapPp" name="Gap" tick={{ fontSize: 11, fill: COLORS.axisText }} axisLine={{ stroke: COLORS.grid }} tickLine={false} tickFormatter={(v: number) => `${v}pp`} label={{ value: 'Realization Gap (pp below target)', position: 'insideBottom', offset: -15, fontSize: 11, fill: COLORS.muted }} />
+              <YAxis type="number" dataKey="revenueAtRisk" name="Revenue" tick={{ fontSize: 11, fill: COLORS.axisText }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `£${v}k`} label={{ value: 'Revenue at Risk (£k)', angle: -90, position: 'insideLeft', offset: 0, fontSize: 11, fill: COLORS.muted }} />
+              <Tooltip formatter={(value, name) => [name === 'Gap' ? `${value}pp` : `£${value}k`, name]} contentStyle={{ borderRadius: '10px', border: '1px solid #d5dbe3', fontSize: '12px' }} />
+              <ReferenceLine x={8} stroke="#c43e3e" strokeDasharray="8 4" label={{ value: 'Gap threshold', position: 'top', fontSize: 9, fill: '#c43e3e' }} />
+              <ReferenceLine y={300} stroke="#173B7A" strokeDasharray="8 4" label={{ value: 'Revenue threshold', position: 'right', fontSize: 9, fill: '#173B7A' }} />
+              <ReferenceArea x1={8} x2={20} y1={300} y2={600} fill="#c43e3e" fillOpacity={0.04} label={{ value: 'QUICK WINS', position: 'center', fontSize: 10, fill: '#c43e3e' }} />
+              {Object.entries(
+                priorityData.reduce((acc, p) => {
+                  const cat = p.category
+                  if (!acc[cat]) acc[cat] = []
+                  acc[cat].push(p)
+                  return acc
+                }, {} as Record<string, typeof priorityData>)
+              ).map(([cat, points]) => (
+                <Scatter key={cat} name={cat} data={points} fill={CATEGORY_COLORS[cat] ?? COLORS.muted} fillOpacity={0.8} />
+              ))}
+            </ScatterChart>
+          </ResponsiveContainer>
 
-          <div className="grid grid-cols-2 gap-4">
-            {(['quick-win', 'strategic', 'monitor', 'low-priority'] as const).map(quadrant => {
-              const items = priorityData.filter(p => p.quadrant === quadrant)
-              const labels = { 'quick-win': '🎯 Quick Wins', 'strategic': 'Strategic', 'monitor': 'Monitor', 'low-priority': 'Low Priority' }
-              return (
-                <div key={quadrant} className={`rounded-xl border p-4 ${quadrant === 'quick-win' ? 'border-negative/30 bg-negative/3' : 'border-border'}`}>
-                  <p className="text-xs font-bold text-text-primary mb-2" style={{ color: QUADRANT_COLORS[quadrant] }}>
-                    {labels[quadrant]} ({items.length})
-                  </p>
-                  {items.length === 0 ? (
-                    <p className="text-xs text-text-muted">No items</p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {items.map(item => (
-                        <div key={item.partFamily} className="flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-semibold text-text-primary">{item.partFamily}</span>
-                            <span className="ml-2 px-1.5 py-0.5 rounded bg-accent/10 text-accent text-[10px] font-bold">{item.category}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-right">
-                            <span className="font-mono text-negative font-semibold">-{item.realizationGapPp}pp</span>
-                            <span className="font-mono text-text-secondary">£{item.revenueAtRisk}k</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+          {/* Quick wins table */}
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="text-xs font-bold text-negative mb-2">Quick Wins — {priorityData.filter(p => p.quadrant === 'quick-win').length} part families with high gap + high revenue</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+              {priorityData.filter(p => p.quadrant === 'quick-win').map(item => (
+                <div key={item.partFamily} className="flex items-center justify-between text-xs py-1 border-b border-border/50">
+                  <span className="font-semibold text-text-primary">{item.partFamily} <span className="text-accent font-bold">({item.category})</span></span>
+                  <span className="font-mono text-negative">-{item.realizationGapPp}pp · £{item.revenueAtRisk}k</span>
                 </div>
-              )
-            })}
+              ))}
+            </div>
           </div>
         </div>
       )}

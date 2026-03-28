@@ -266,22 +266,39 @@ export interface InsightCard {
 }
 
 export function getInsightCards(f: Filters): InsightCard[] {
-  const real200 = varyPct(77, f, 300)
+  const heatmap = getRealizationHeatmap(f)
+  // Find worst category
+  const catAvgs: Record<string, number[]> = {}
+  heatmap.cells.forEach(c => {
+    if (!catAvgs[c.category]) catAvgs[c.category] = []
+    catAvgs[c.category].push(c.value)
+  })
+  const catMeans = Object.entries(catAvgs).map(([cat, vals]) => ({
+    cat,
+    avg: Math.round(vals.reduce((s, v) => s + v, 0) / vals.length * 10) / 10,
+  })).sort((a, b) => a.avg - b.avg)
+
+  const worst = catMeans[0]
+  const best = catMeans[catMeans.length - 1]
+  const sub = f.subSegment !== 'All Sub-Segments' ? f.subSegment : 'Ferries'
+
+  // Template-based insights — each uses fixed structure + data slots
+  // PowerBI: DAX measure with CONCATENATE / FORMAT / IF patterns
   return [
     {
       severity: 'warning',
-      title: `Cat. 200 price erosion accelerating — ${f.subSegment !== 'All Sub-Segments' ? f.subSegment : 'Ferry'} segment`,
-      description: `Coupling Plates & Sealing Rings at ${real200.toFixed(0)}–78% realization. Last-mile discounts averaging -13.2% in Ferries. Suggest reviewing discount authority threshold for this sub-segment.`,
+      title: `${worst.cat} avg. realization ${worst.avg}% — ${sub}`,
+      description: `Lowest category. Review discount authority thresholds. Last-mile discounts above policy for this sub-segment.`,
     },
     {
       severity: 'info',
-      title: `OS Oil & Gas Cat. 300 below benchmark`,
-      description: `Filters at 77% despite no apparent competitive pressure vs. North Sea peers (NO avg. 84%). Likely individual account concessions. Check customer-level pricing for OS Oil accounts.`,
+      title: `${catMeans.length > 2 ? catMeans[2].cat : 'Cat 300'}: ${catMeans.length > 2 ? catMeans[2].avg : 83}% — below peer benchmark`,
+      description: `No competitive pressure detected vs. peer group. Likely individual account concessions. Check customer-level pricing.`,
     },
     {
       severity: 'positive',
-      title: `Cat. 500 proprietary parts — strong and stable`,
-      description: `88–95% across all sub-segments. Pricing discipline template. Consider removing discretionary discount authority entirely for Cat. 500 to protect the position.`,
+      title: `${best.cat} strong at ${best.avg}% across sub-segments`,
+      description: `Pricing discipline template. Consider removing discretionary discount authority for ${best.cat} to protect position.`,
     },
   ]
 }
@@ -500,7 +517,7 @@ export function getGreyMarketAlerts(f: Filters): GreyMarketAlert[] {
       realizationPct: plReal,
       marginPct: plMargin,
       gapVsYou: Math.round((plReal - yourReal) * 10) / 10,
-      riskDescription: `~15pp realization vs. UK. Cat 200 parts ~£40 cheaper/unit. Risk of arbitrage to UK customers. Escalate to HQ pricing governance for minimum price harmonization.`,
+      riskDescription: `${Math.abs(Math.round(plReal - yourReal))}pp gap vs. ${f.region.split(' · ')[1] || 'UK'}. Re-export risk at this price delta. Escalate to HQ pricing governance for minimum price harmonization.`,
     },
   ]
 }

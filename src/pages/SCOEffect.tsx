@@ -184,13 +184,23 @@ export default function PriceWaterfall() {
             </div>
           </div>
 
-          {/* Insight */}
-          <div className="mt-6 p-3 bg-negative/5 border-l-4 border-l-negative rounded-r-lg">
-            <p className="text-xs font-bold text-text-primary">Cat. 200 last-mile discount ~4&times; Cat. 500</p>
-            <p className="text-xs text-text-secondary mt-1">
-              Tighten approval thresholds for Cat. 200. Potential annual uplift ~&pound;180k at current volumes.
-            </p>
-          </div>
+          {/* Insight — template-based (PowerBI: DAX measure card) */}
+          {(() => {
+            const sorted = [...lastMile].sort((a, b) => a.discount - b.discount)
+            const worstCat = sorted[0]
+            const bestCat = sorted[sorted.length - 1]
+            const ratio = Math.round(Math.abs(worstCat.discount / bestCat.discount) * 10) / 10
+            return (
+              <div className="mt-6 p-3 bg-negative/5 border-l-4 border-l-negative rounded-r-lg">
+                <p className="text-xs font-bold text-text-primary">
+                  {worstCat.category} last-mile {worstCat.discount.toFixed(1)}% — {ratio}&times; {bestCat.category}
+                </p>
+                <p className="text-xs text-text-secondary mt-1">
+                  Tighten approval thresholds for {worstCat.category}. Review discount authority at MC level.
+                </p>
+              </div>
+            )
+          })()}
         </div>
       </div>
     </div>

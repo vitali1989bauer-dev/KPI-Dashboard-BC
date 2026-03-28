@@ -142,12 +142,22 @@ export default function Trends() {
             </div>
           </div>
 
-          <div className="bg-card rounded-xl border border-border border-l-4 border-l-negative p-4">
-            <p className="text-sm font-bold text-text-primary">Cost outpacing price increases for 3rd consecutive year</p>
-            <p className="text-xs text-text-secondary mt-1">
-              Requires above-inflation price increases in next price round. Cat. 200–300 priority — lowest realization, highest cost sensitivity.
-            </p>
-          </div>
+          {/* Template-based insight — PowerBI: DAX measure card */}
+          {(() => {
+            const latest = costVsPrice[costVsPrice.length - 1]
+            const gap = latest ? (latest.costChange - latest.priceChange).toFixed(1) : '0.9'
+            const gapYears = costVsPrice.filter(d => d.costChange > d.priceChange).length
+            return (
+              <div className="bg-card rounded-xl border border-border border-l-4 border-l-negative p-4">
+                <p className="text-sm font-bold text-text-primary">
+                  Cost outpacing price for {gapYears} consecutive year{gapYears !== 1 ? 's' : ''} (+{gap}pp cumulative gap)
+                </p>
+                <p className="text-xs text-text-secondary mt-1">
+                  Above-inflation price increase required in next round. Focus on categories with lowest realization and highest cost sensitivity.
+                </p>
+              </div>
+            )
+          })()}
         </>
       )}
 
