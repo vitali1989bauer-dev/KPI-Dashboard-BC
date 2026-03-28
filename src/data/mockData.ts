@@ -78,6 +78,48 @@ function varyPct(base: number, f: Filters, offset = 0): number {
 }
 
 // ---------------------------------------------------------------------------
+// Low-n transaction threshold system
+// When sparse filters produce few transactions, KPIs should be flagged
+// PowerBI: conditional formatting rule on [TransactionCount] < threshold
+// ---------------------------------------------------------------------------
+export const LOW_N_THRESHOLD = 30 // below this, KPI is "low confidence"
+export const SUPPRESS_THRESHOLD = 5 // below this, suppress value entirely
+
+export interface TransactionCount {
+  count: number
+  isLowN: boolean
+  isSuppressed: boolean
+}
+
+export function getTransactionCount(f: Filters): TransactionCount {
+  // Simulate: narrower filters = fewer transactions
+  let base = 1847
+  if (f.subSegment !== 'All Sub-Segments') base = Math.round(base * 0.18)
+  if (f.materialCategory !== 'All Categories') base = Math.round(base * 0.22)
+  if (f.segment !== 'All Segments') base = Math.round(base * 0.35)
+  if (f.timePeriod === 'MTD') base = Math.round(base * 0.08)
+  const count = Math.max(2, Math.round(vary(base, f, 9999)))
+  return {
+    count,
+    isLowN: count < LOW_N_THRESHOLD,
+    isSuppressed: count < SUPPRESS_THRESHOLD,
+  }
+}
+
+// Per-cell transaction count for heatmap
+export function getCellTransactionCount(f: Filters, catIdx: number, subIdx: number): TransactionCount {
+  const baseCounts = [45, 28, 15, 38, 52, 22, 12, 34, 48, 8, 42, 31, 19, 55, 37, 26, 14, 41, 3, 47, 33, 16, 44, 29, 11, 36, 50, 23, 7, 39]
+  const idx = (catIdx * 6 + subIdx) % baseCounts.length
+  let count = Math.round(vary(baseCounts[idx], f, 2000 + catIdx * 10 + subIdx))
+  if (f.timePeriod === 'MTD') count = Math.round(count * 0.08)
+  return {
+    count: Math.max(1, count),
+    isLowN: count < LOW_N_THRESHOLD,
+    isSuppressed: count < SUPPRESS_THRESHOLD,
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Overview — KPI Cards
 // ---------------------------------------------------------------------------
 export interface OverviewKpi {
@@ -650,4 +692,151 @@ export function getMonthlyTrend(f: Filters): MonthlyTrend[] {
     marginPct: varyPct(baseMargin[i], f, 1020 + i),
     lastMilePct: varyPct(baseLM[i], f, 1040 + i),
   }))
+}
+
+// ---------------------------------------------------------------------------
+// Parts Deep Dive — Discount Variance tab
+// ---------------------------------------------------------------------------
+export interface DiscountVarianceItem {
+  partFamily: string
+  category: string
+  approvedDiscount: number
+  actualDiscount: number
+  variancePp: number
+  authorityExceeded: boolean
+  transactionCount: number
+}
+
+export function getDiscountVariance(f: Filters): DiscountVarianceItem[] {
+  const base: Omit<DiscountVarianceItem, 'actualDiscount' | 'variancePp' | 'authorityExceeded' | 'transactionCount'>[] = [
+    { partFamily: 'Coupling Plates', category: 'Cat 200', approvedDiscount: -5.0 },
+    { partFamily: 'Sealing Rings', category: 'Cat 200', approvedDiscount: -5.0 },
+    { partFamily: 'OS Oil Filters', category: 'Cat 300', approvedDiscount: -4.0 },
+    { partFamily: 'Thrust Bearings', category: 'Cat 400', approvedDiscount: -3.5 },
+    { partFamily: 'Filter Elements', category: 'Cat 200', approvedDiscount: -5.0 },
+    { partFamily: 'Shaft Seals', category: 'Cat 300', approvedDiscount: -4.0 },
+    { partFamily: 'Control Valves', category: 'Cat 300', approvedDiscount: -4.0 },
+    { partFamily: 'Gear Wheels', category: 'Cat 300', approvedDiscount: -3.5 },
+    { partFamily: 'VSP Controls', category: 'Cat 500', approvedDiscount: -2.0 },
+    { partFamily: 'Prop. Blades', category: 'Cat 500', approvedDiscount: -2.0 },
+  ]
+
+  const baseActuals = [-11.2, -9.8, -7.4, -5.2, -8.6, -6.1, -5.8, -4.9, -2.7, -2.3]
+  const baseTxn = [82, 65, 48, 34, 71, 42, 38, 29, 55, 47]
+
+  return base.map((item, i) => {
+    const actual = varyPct(baseActuals[i], f, 1100 + i)
+    const txn = Math.max(2, Math.round(vary(baseTxn[i], f, 1130 + i)))
+    return {
+      ...item,
+      actualDiscount: actual,
+      variancePp: Math.round((actual - item.approvedDiscount) * 10) / 10,
+      authorityExceeded: actual < item.approvedDiscount * 1.5,
+      transactionCount: txn,
+    }
+  }).sort((a, b) => a.variancePp - b.variancePp) // worst first
+}
+
+// ---------------------------------------------------------------------------
+// Parts Deep Dive — Priority Matrix
+// ---------------------------------------------------------------------------
+export interface PriorityMatrixPoint {
+  partFamily: string
+  category: string
+  realizationGapPp: number  // how far below target
+  revenueAtRisk: number     // £k
+  quadrant: 'quick-win' | 'strategic' | 'monitor' | 'low-priority'
+}
+
+export function getPriorityMatrix(f: Filters): PriorityMatrixPoint[] {
+  const base = [
+    { partFamily: 'Coupling Plates', category: 'Cat 200', gap: 14, rev: 520 },
+    { partFamily: 'Sealing Rings', category: 'Cat 200', gap: 12, rev: 480 },
+    { partFamily: 'OS Oil Filters', category: 'Cat 300', gap: 8, rev: 350 },
+    { partFamily: 'Filter Elements', category: 'Cat 200', gap: 10, rev: 290 },
+    { partFamily: 'Thrust Bearings', category: 'Cat 400', gap: 5, rev: 310 },
+    { partFamily: 'Shaft Seals', category: 'Cat 300', gap: 6, rev: 240 },
+    { partFamily: 'O-Rings', category: 'Cat 100', gap: 7, rev: 150 },
+    { partFamily: 'Bolts & Fasteners', category: 'Cat 100', gap: 3, rev: 120 },
+    { partFamily: 'Pressure Sensors', category: 'Cat 100', gap: 5, rev: 180 },
+    { partFamily: 'VSP Controls', category: 'Cat 500', gap: 2, rev: 420 },
+    { partFamily: 'Prop. Blades', category: 'Cat 500', gap: 3, rev: 380 },
+    { partFamily: 'Impeller Units', category: 'Cat 500', gap: 1, rev: 340 },
+  ]
+
+  return base.map((item, i) => {
+    const gap = Math.round(vary(item.gap, f, 1200 + i))
+    const rev = Math.round(vary(item.rev, f, 1230 + i))
+    const highGap = gap >= 8
+    const highRev = rev >= 300
+    const quadrant: PriorityMatrixPoint['quadrant'] = highGap && highRev ? 'quick-win' : highGap ? 'strategic' : highRev ? 'monitor' : 'low-priority'
+    return { partFamily: item.partFamily, category: item.category, realizationGapPp: gap, revenueAtRisk: rev, quadrant }
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Regional — Sub-Segment Benchmark
+// ---------------------------------------------------------------------------
+export interface SubSegmentBenchmark {
+  subSegment: string
+  realizationPct: number
+  marginPct: number
+  transactionCount: number
+  vsSegmentAvg: number
+}
+
+export function getSubSegmentBenchmark(f: Filters): SubSegmentBenchmark[] {
+  const seg = f.segment === 'All Segments' ? 'Marine' : f.segment
+  const subs = (subSegments[seg] || subSegments['Marine']).filter(s => s !== 'All Sub-Segments')
+
+  const baseReal = [83.2, 81.4, 79.8, 78.5, 85.1, 80.3]
+  const baseMargin = [40.1, 38.7, 36.2, 35.8, 42.3, 37.9]
+  const baseTxn = [320, 280, 180, 150, 95, 210]
+
+  const segAvg = baseReal.slice(0, subs.length).reduce((s, v) => s + v, 0) / subs.length
+
+  return subs.map((sub, i) => {
+    const real = varyPct(baseReal[i % baseReal.length], f, 1300 + i)
+    const txn = Math.max(3, Math.round(vary(baseTxn[i % baseTxn.length], f, 1330 + i)))
+    return {
+      subSegment: sub,
+      realizationPct: real,
+      marginPct: varyPct(baseMargin[i % baseMargin.length], f, 1360 + i),
+      transactionCount: txn,
+      vsSegmentAvg: Math.round((real - segAvg) * 10) / 10,
+    }
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Trends — 3-Year Trajectory (monthly granularity)
+// ---------------------------------------------------------------------------
+export interface TrajectoryPoint {
+  label: string
+  realizationPct: number
+  marginPct: number
+  lastMilePct: number
+}
+
+export function get3YearTrajectory(f: Filters): TrajectoryPoint[] {
+  const years = [2024, 2025, 2026]
+  const result: TrajectoryPoint[] = []
+  const baseReal = [84.5, 83.2, 81.4]
+  const baseMargin = [39.8, 38.6, 38.7]
+  const baseLM = [-7.2, -8.0, -8.8]
+
+  years.forEach((year, yi) => {
+    const months = year === 2026 ? 9 : 12
+    for (let m = 0; m < months; m++) {
+      const monthLabel = `${ALL_MONTHS[m]} ${String(year).slice(2)}`
+      const seasonalFactor = 1 + Math.sin((m - 3) * Math.PI / 6) * 0.01
+      result.push({
+        label: monthLabel,
+        realizationPct: varyPct(baseReal[yi] * seasonalFactor, f, 1400 + yi * 12 + m),
+        marginPct: varyPct(baseMargin[yi] * seasonalFactor, f, 1450 + yi * 12 + m),
+        lastMilePct: varyPct(baseLM[yi], f, 1500 + yi * 12 + m),
+      })
+    }
+  })
+  return result
 }

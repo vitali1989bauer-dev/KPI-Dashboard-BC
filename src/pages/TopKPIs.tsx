@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Info, CheckCircle2 } from 'lucide-react'
-import { getOverviewKpis, getRealizationHeatmap, getTopActionItems, getInsightCards } from '../data/mockData'
+import { getOverviewKpis, getRealizationHeatmap, getTopActionItems, getInsightCards, getCellTransactionCount, getTransactionCount, LOW_N_THRESHOLD } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 
-function KpiCard({ kpi }: { kpi: ReturnType<typeof getOverviewKpis>[0] }) {
+function KpiCard({ kpi, txn }: { kpi: ReturnType<typeof getOverviewKpis>[0]; txn?: { isLowN: boolean; isSuppressed: boolean; count: number } }) {
   const accentBorder = {
     red: 'border-t-negative',
     blue: 'border-t-primary',
@@ -17,36 +18,60 @@ function KpiCard({ kpi }: { kpi: ReturnType<typeof getOverviewKpis>[0] }) {
     neutral: 'text-text-muted',
   }
 
+  const isLowN = txn?.isLowN ?? false
+  const isSuppressed = txn?.isSuppressed ?? false
+
   return (
-    <div className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover`}>
+    <div className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover relative ${isLowN ? 'opacity-60' : ''}`}>
       <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
-      <p className={`text-3xl font-bold ${kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-text-primary'}`}>
-        {kpi.value}
+      <p className={`text-3xl font-bold ${isSuppressed ? 'text-text-muted' : kpi.status === 'negative' ? 'text-negative' : kpi.status === 'positive' ? 'text-positive' : 'text-text-primary'}`}>
+        {isSuppressed ? '—' : kpi.value}
       </p>
-      <p className={`text-xs mt-1 font-medium ${subtitleColor[kpi.status]}`}>
-        {kpi.subtitle}
+      <p className={`text-xs mt-1 font-medium ${isLowN ? 'text-text-muted' : subtitleColor[kpi.status]}`}>
+        {isSuppressed ? 'Insufficient data' : kpi.subtitle}
       </p>
+      {isLowN && !isSuppressed && (
+        <div className="absolute top-2 right-2" title={`Based on ${txn?.count} transactions (< ${LOW_N_THRESHOLD})`}>
+          <span className="px-1.5 py-0.5 rounded bg-bg-warm text-[9px] font-bold text-text-muted border border-border">
+            n={txn?.count}
+          </span>
+        </div>
+      )}
     </div>
   )
 }
 
-function HeatmapCell({ value }: { value: number }) {
-  const bg = value >= 85 ? 'bg-positive' : value >= 80 ? 'bg-warning' : 'bg-negative'
+function HeatmapCell({ value, txnCount, onClick }: { value: number; txnCount: { isLowN: boolean; isSuppressed: boolean; count: number }; onClick: () => void }) {
+  const bg = txnCount.isSuppressed
+    ? 'bg-bg-warm text-text-muted'
+    : txnCount.isLowN
+      ? value >= 85 ? 'bg-positive/40 text-white' : value >= 80 ? 'bg-warning/40 text-white' : 'bg-negative/40 text-white'
+      : value >= 85 ? 'bg-positive text-white' : value >= 80 ? 'bg-warning text-white' : 'bg-negative text-white'
+
   return (
     <td className="px-2 py-2 text-center">
-      <span className={`inline-block px-3 py-1.5 rounded-lg text-sm font-bold text-white ${bg}`}>
-        {value}%
-      </span>
+      <button
+        onClick={onClick}
+        className={`inline-block px-3 py-1.5 rounded-lg text-sm font-bold cursor-pointer hover:ring-2 hover:ring-accent/50 transition-all relative ${bg}`}
+        title={txnCount.isLowN ? `n=${txnCount.count} — low sample` : `n=${txnCount.count}`}
+      >
+        {txnCount.isSuppressed ? '—' : `${value}%`}
+        {txnCount.isLowN && !txnCount.isSuppressed && (
+          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-text-muted border border-white" title="Low sample size" />
+        )}
+      </button>
     </td>
   )
 }
 
 export default function Overview() {
   const { filters } = useFilters()
+  const navigate = useNavigate()
   const kpis = useMemo(() => getOverviewKpis(filters), [filters])
   const heatmap = useMemo(() => getRealizationHeatmap(filters), [filters])
   const actionItems = useMemo(() => getTopActionItems(filters), [filters])
   const insights = useMemo(() => getInsightCards(filters), [filters])
+  const globalTxn = useMemo(() => getTransactionCount(filters), [filters])
 
   const cellsBelow80 = heatmap.cells.filter(c => c.value < 80).length
 
@@ -55,7 +80,7 @@ export default function Overview() {
       {/* KPI Cards */}
       <div className="grid grid-cols-5 gap-4 mb-6">
         {kpis.map((kpi) => (
-          <KpiCard key={kpi.id} kpi={kpi} />
+          <KpiCard key={kpi.id} kpi={kpi} txn={globalTxn} />
         ))}
       </div>
 
@@ -89,12 +114,20 @@ export default function Overview() {
                 </tr>
               </thead>
               <tbody>
-                {heatmap.categories.map(cat => (
+                {heatmap.categories.map((cat, ci) => (
                   <tr key={cat}>
                     <td className="px-2 py-2 text-xs font-semibold text-text-secondary whitespace-nowrap">{cat}</td>
-                    {heatmap.subSegments.map(sub => {
+                    {heatmap.subSegments.map((sub, si) => {
                       const cell = heatmap.cells.find(c => c.subSegment === sub && c.category === cat)
-                      return <HeatmapCell key={`${cat}-${sub}`} value={cell?.value ?? 0} />
+                      const cellTxn = getCellTransactionCount(filters, ci, si)
+                      return (
+                        <HeatmapCell
+                          key={`${cat}-${sub}`}
+                          value={cell?.value ?? 0}
+                          txnCount={cellTxn}
+                          onClick={() => navigate('/parts-deep-dive')}
+                        />
+                      )
                     })}
                   </tr>
                 ))}
@@ -104,6 +137,8 @@ export default function Overview() {
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-positive inline-block" /> &ge;85% On target</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-warning inline-block" /> 80–84% Watch</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-negative inline-block" /> &lt;80% Action required</span>
+              <span className="flex items-center gap-1.5 ml-2 pl-2 border-l border-border"><span className="w-2 h-2 rounded-full bg-text-muted inline-block" /> Low sample (n&lt;{LOW_N_THRESHOLD})</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-bg-warm inline-block border border-border" /> Suppressed (n&lt;5)</span>
             </div>
           </div>
         </div>
@@ -154,10 +189,10 @@ export default function Overview() {
           const iconColor = insight.severity === 'warning' ? 'text-negative' : insight.severity === 'info' ? 'text-primary' : 'text-positive'
 
           return (
-            <div key={idx} className={`bg-card rounded-xl border border-border border-l-4 ${borderColor} p-4`}>
+            <div key={idx} className={`bg-card rounded-xl border border-border border-l-4 ${borderColor} p-4 card-hover`}>
               <div className="flex items-start gap-2 mb-1.5">
-                <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${iconColor}`} />
-                <h4 className="text-sm font-bold text-text-primary leading-tight">{insight.title}</h4>
+                <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${iconColor}`} />
+                <p className="text-sm font-bold text-text-primary leading-snug">{insight.title}</p>
               </div>
               <p className="text-xs text-text-secondary leading-relaxed ml-6">{insight.description}</p>
             </div>

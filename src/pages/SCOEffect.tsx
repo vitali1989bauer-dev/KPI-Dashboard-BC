@@ -10,7 +10,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts'
-import { getPriceWaterfall, getWaterfallKpis, getLastMileDistribution } from '../data/mockData'
+import { getPriceWaterfall, getWaterfallKpis, getLastMileDistribution, getTransactionCount } from '../data/mockData'
 import { useFilters } from '../FilterContext'
 
 const TOTAL_COLOR = '#1a2332'
@@ -49,7 +49,7 @@ function buildWaterfallData(steps: ReturnType<typeof getPriceWaterfall>): WfPoin
   return result
 }
 
-function KpiCard({ kpi }: { kpi: ReturnType<typeof getWaterfallKpis>[0] }) {
+function KpiCard({ kpi, txn }: { kpi: ReturnType<typeof getWaterfallKpis>[0]; txn?: { isLowN: boolean; isSuppressed: boolean; count: number } }) {
   const accentBorder = {
     red: 'border-t-negative',
     blue: 'border-t-primary',
@@ -57,14 +57,19 @@ function KpiCard({ kpi }: { kpi: ReturnType<typeof getWaterfallKpis>[0] }) {
     amber: 'border-t-warning',
     grey: 'border-t-accent',
   }
+  const isLowN = txn?.isLowN ?? false
+  const isSuppressed = txn?.isSuppressed ?? false
 
   return (
-    <div className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover`}>
+    <div className={`bg-card rounded-xl border border-border border-t-3 ${accentBorder[kpi.accentColor]} p-5 card-hover ${isLowN ? 'opacity-60' : ''}`}>
       <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-1">{kpi.label}</p>
-      <p className={`text-3xl font-bold ${kpi.accentColor === 'red' ? 'text-negative' : kpi.accentColor === 'green' ? 'text-positive' : 'text-text-primary'}`}>
-        {kpi.value}
+      <p className={`text-3xl font-bold ${isSuppressed ? 'text-text-muted' : kpi.accentColor === 'red' ? 'text-negative' : kpi.accentColor === 'green' ? 'text-positive' : 'text-text-primary'}`}>
+        {isSuppressed ? '—' : kpi.value}
       </p>
-      <p className="text-xs text-text-muted mt-1">{kpi.subtitle}</p>
+      <p className="text-xs text-text-muted mt-1">{isSuppressed ? 'Insufficient data' : kpi.subtitle}</p>
+      {isLowN && !isSuppressed && (
+        <span className="text-[9px] font-bold text-text-muted bg-bg-warm px-1.5 py-0.5 rounded border border-border mt-1 inline-block">n={txn?.count}</span>
+      )}
     </div>
   )
 }
@@ -75,6 +80,7 @@ export default function PriceWaterfall() {
   const wfData = useMemo(() => buildWaterfallData(waterfallSteps), [waterfallSteps])
   const kpis = useMemo(() => getWaterfallKpis(filters), [filters])
   const lastMile = useMemo(() => getLastMileDistribution(filters), [filters])
+  const txn = useMemo(() => getTransactionCount(filters), [filters])
 
   const yMax = 110
   const targetLine = waterfallSteps.find(s => s.name.includes('Segment'))?.value ?? 90
@@ -84,7 +90,7 @@ export default function PriceWaterfall() {
       {/* KPI Cards */}
       <div className="grid grid-cols-5 gap-4 mb-6">
         {kpis.map((kpi) => (
-          <KpiCard key={kpi.label} kpi={kpi} />
+          <KpiCard key={kpi.label} kpi={kpi} txn={txn} />
         ))}
       </div>
 

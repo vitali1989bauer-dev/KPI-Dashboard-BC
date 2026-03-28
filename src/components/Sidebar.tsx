@@ -85,15 +85,16 @@ function TimePeriodTabs({ value, onChange }: { value: string; onChange: (v: stri
   )
 }
 
-function PeerGroupPanel({ region }: { region: string }) {
-  const segPeerMap: Record<string, string> = {
-    'Marine': 'NORTH SEA',
-    'Rail': 'CENTRAL EUROPE',
-    'Industry': 'EMEA INDUSTRIAL',
+function PeerGroupPanel({ region, segment }: { region: string; segment: string }) {
+  const segPeerMap: Record<string, { name: string; peers: string[] }> = {
+    'Marine': { name: 'NORTH SEA', peers: ['GB UK', 'NO NO', 'NL NL', 'DK DK', 'DE DE'] },
+    'Rail': { name: 'CENTRAL EUROPE', peers: ['DE DE', 'GB UK', 'FR FR', 'AT AT', 'PL PL'] },
+    'Industry': { name: 'EMEA INDUSTRIAL', peers: ['DE DE', 'GB UK', 'US US', 'CN CN', 'BR BR'] },
+    'All Segments': { name: 'GLOBAL', peers: ['GB UK', 'DE DE', 'US US', 'CN CN', 'NO NO'] },
   }
-  // Default to North Sea
-  const peerGroup = segPeerMap['Marine'] || 'NORTH SEA'
-  const peers = ['GB UK', 'NO NO', 'NL NL', 'DK DK', 'DE DE']
+  const config = segPeerMap[segment] || segPeerMap['Marine']
+  const peerGroup = config.name
+  const peers = config.peers
   const regionCode = region.split(' · ')[1] || 'UK'
 
   return (
@@ -103,7 +104,7 @@ function PeerGroupPanel({ region }: { region: string }) {
         <div className="flex items-center gap-1.5 mb-1">
           <span className="text-accent text-xs font-bold">AUTO-MATCHED: {peerGroup}</span>
         </div>
-        <p className="text-[10px] text-white/40 mb-2">Based on Marine segment. Edit below.</p>
+        <p className="text-[10px] text-white/40 mb-2">Based on {segment} segment. Edit below.</p>
         <div className="flex flex-wrap gap-1.5">
           {peers.map((peer) => {
             const code = peer.split(' ')[1]
@@ -214,7 +215,7 @@ export default function Sidebar() {
         </div>
 
         {/* Peer Group */}
-        <PeerGroupPanel region={filters.region} />
+        <PeerGroupPanel region={filters.region} segment={filters.segment} />
       </div>
 
       {/* Status */}
