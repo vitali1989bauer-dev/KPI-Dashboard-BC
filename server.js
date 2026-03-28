@@ -49,7 +49,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'dist')))
 
 // SPA fallback — serve index.html for all non-file routes
-app.get('*', (_req, res) => {
+app.get('/{*splat}', (_req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'))
 })
 
