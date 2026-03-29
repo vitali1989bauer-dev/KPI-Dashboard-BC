@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ScatterChart,
   Scatter,
@@ -48,6 +49,7 @@ type TabId = 'scatter' | 'discount' | 'priority' | 'detail'
 
 export default function PartsDeepDive() {
   const { filters } = useFilters()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<TabId>('scatter')
   const data = useMemo(() => getPartFamilyScatter(filters), [filters])
   const kpis = useMemo(() => getPartsDeepDiveKpis(filters), [filters])
@@ -254,15 +256,32 @@ export default function PartsDeepDive() {
         </div>
       )}
 
-      {/* TAB: Part Detail */}
+      {/* TAB: Part Detail — redirects to Cross-Reference page */}
       {activeTab === 'detail' && (
         <div className="bg-card rounded-lg border border-border p-6">
           <h3 className="text-sm font-bold text-text-primary mb-2">Part Family Detail View</h3>
-          <p className="text-xs text-text-muted mb-4">Select a part family from the scatter chart or tables to see detailed price history, discount log, and recommendations.</p>
-          <div className="bg-bg-warm rounded-lg border border-border p-8 text-center">
-            <p className="text-text-muted text-sm">Click a bubble in "Margin vs. Realization" or a row in other tabs to drill into part-level detail.</p>
-            <p className="text-text-muted text-xs mt-2">In PowerBI: this will be a drill-through page triggered by clicking any part family across the report.</p>
+          <p className="text-xs text-text-muted mb-4">Select a part family to see the full picture — pricing, margin, volume, trend, and peer comparison in one view.</p>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {data.slice(0, 9).map((pt) => (
+              <button
+                key={pt.name}
+                onClick={() => navigate('/cross-reference')}
+                className="text-left px-3 py-2.5 rounded-lg border border-border hover:border-accent hover:bg-accent/5 transition-all cursor-pointer"
+              >
+                <p className="text-[13px] font-semibold text-text-primary">{pt.name}</p>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <span className="text-[10px] text-text-muted">{pt.category}</span>
+                  <span className={`text-[11px] font-mono font-semibold ${pt.realizationPct < 80 ? 'text-negative' : pt.realizationPct < 85 ? 'text-warning' : 'text-positive'}`}>
+                    {pt.realizationPct.toFixed(1)}%
+                  </span>
+                  <span className="text-[11px] font-mono text-text-muted">GM {pt.marginPct.toFixed(0)}%</span>
+                </div>
+              </button>
+            ))}
           </div>
+          <p className="text-[10px] text-text-muted text-center">
+            In PowerBI: drill-through page triggered by clicking any part family across the report.
+          </p>
         </div>
       )}
     </div>
