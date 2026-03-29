@@ -45,7 +45,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   )
 }
 
-type TabId = 'scatter' | 'discount' | 'priority' | 'detail'
+type TabId = 'scatter' | 'discount' | 'priority'
 
 export default function PartsDeepDive() {
   const { filters } = useFilters()
@@ -67,7 +67,6 @@ export default function PartsDeepDive() {
     { id: 'scatter', label: 'Margin vs. Realization' },
     { id: 'discount', label: 'Discount Variance' },
     { id: 'priority', label: 'Priority Matrix' },
-    { id: 'detail', label: 'Part Detail' },
   ]
 
   return (
@@ -256,34 +255,12 @@ export default function PartsDeepDive() {
         </div>
       )}
 
-      {/* TAB: Part Detail — redirects to Cross-Reference page */}
-      {activeTab === 'detail' && (
-        <div className="bg-card rounded-lg border border-border p-6">
-          <h3 className="text-sm font-bold text-text-primary mb-2">Part Family Detail View</h3>
-          <p className="text-xs text-text-muted mb-4">Select a part family to see the full picture — pricing, margin, volume, trend, and peer comparison in one view.</p>
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            {data.slice(0, 9).map((pt) => (
-              <button
-                key={pt.name}
-                onClick={() => navigate('/cross-reference')}
-                className="text-left px-3 py-2.5 rounded-lg border border-border hover:border-accent hover:bg-accent/5 transition-all cursor-pointer"
-              >
-                <p className="text-[13px] font-semibold text-text-primary">{pt.name}</p>
-                <div className="flex items-center gap-3 mt-0.5">
-                  <span className="text-[10px] text-text-muted">{pt.category}</span>
-                  <span className={`text-[11px] font-mono font-semibold ${pt.realizationPct < 80 ? 'text-negative' : pt.realizationPct < 85 ? 'text-warning' : 'text-positive'}`}>
-                    {pt.realizationPct.toFixed(1)}%
-                  </span>
-                  <span className="text-[11px] font-mono text-text-muted">GM {pt.marginPct.toFixed(0)}%</span>
-                </div>
-              </button>
-            ))}
-          </div>
-          <p className="text-[10px] text-text-muted text-center">
-            In PowerBI: drill-through page triggered by clicking any part family across the report.
-          </p>
-        </div>
-      )}
+      {/* Drill-through hint */}
+      <div className="mt-4 text-center">
+        <button onClick={() => navigate('/cross-reference')} className="text-xs text-accent hover:underline cursor-pointer">
+          Open Cross-Reference for full family + SKU detail →
+        </button>
+      </div>
     </div>
   )
 }

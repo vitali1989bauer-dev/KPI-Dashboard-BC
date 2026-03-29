@@ -1030,3 +1030,104 @@ export function getCrossRefParts(f: Filters): CrossRefData[] {
     }
   })
 }
+
+// ---------------------------------------------------------------------------
+// SKU-level data for drill-down within a product family
+// ---------------------------------------------------------------------------
+export interface SkuData {
+  sku: string
+  description: string
+  listPrice: number
+  segmentPrice: number
+  netPrice: number
+  cogs: number
+  marginPct: number
+  realizationPct: number
+  qtyCY: number
+  qtyPY: number
+  revenueCY: number
+  lastTransactionDate: string
+  transactionCount: number
+  isLowN: boolean
+  priceChange: 'up' | 'down' | 'flat'
+}
+
+const skusByFamily: Record<string, { sku: string; desc: string; lp: number; np: number; cogs: number; qty: number }[]> = {
+  'Coupling Plates': [
+    { sku: 'VT-CP-2041-A', desc: 'Coupling plate assy. 200mm standard', lp: 165, np: 112, cogs: 72, qty: 280 },
+    { sku: 'VT-CP-2041-B', desc: 'Coupling plate assy. 200mm reinforced', lp: 195, np: 138, cogs: 84, qty: 180 },
+    { sku: 'VT-CP-2042-A', desc: 'Coupling plate assy. 250mm standard', lp: 210, np: 145, cogs: 91, qty: 220 },
+    { sku: 'VT-CP-2042-B', desc: 'Coupling plate assy. 250mm marine grade', lp: 245, np: 162, cogs: 98, qty: 140 },
+  ],
+  'Sealing Rings': [
+    { sku: 'VT-SR-1010', desc: 'O-ring seal 45mm NBR', lp: 28, np: 18, cogs: 11, qty: 520 },
+    { sku: 'VT-SR-1011', desc: 'O-ring seal 45mm FKM high-temp', lp: 42, np: 31, cogs: 16, qty: 380 },
+    { sku: 'VT-SR-1020', desc: 'Lip seal 60mm single-acting', lp: 55, np: 38, cogs: 22, qty: 310 },
+    { sku: 'VT-SR-1021', desc: 'Lip seal 60mm double-acting', lp: 68, np: 48, cogs: 28, qty: 240 },
+  ],
+  'VSP Controls': [
+    { sku: 'VT-VSP-5001', desc: 'VSP control unit MkIV complete', lp: 4800, np: 4560, cogs: 1820, qty: 12 },
+    { sku: 'VT-VSP-5002', desc: 'VSP control board replacement', lp: 3200, np: 2980, cogs: 1240, qty: 18 },
+    { sku: 'VT-VSP-5010', desc: 'VSP servo actuator assy.', lp: 2800, np: 2640, cogs: 1080, qty: 8 },
+    { sku: 'VT-VSP-5011', desc: 'VSP feedback sensor module', lp: 1450, np: 1380, cogs: 520, qty: 4 },
+  ],
+  'Thrust Bearings': [
+    { sku: 'VT-TB-4010', desc: 'Thrust bearing pad set (6-pad)', lp: 920, np: 780, cogs: 420, qty: 45 },
+    { sku: 'VT-TB-4011', desc: 'Thrust bearing housing assy.', lp: 1240, np: 1050, cogs: 580, qty: 32 },
+    { sku: 'VT-TB-4020', desc: 'Thrust collar machined', lp: 680, np: 590, cogs: 310, qty: 68 },
+  ],
+  'OS Oil Filters': [
+    { sku: 'VT-OF-3010', desc: 'Oil filter element 10 micron', lp: 185, np: 128, cogs: 82, qty: 180 },
+    { sku: 'VT-OF-3011', desc: 'Oil filter element 25 micron', lp: 165, np: 118, cogs: 74, qty: 120 },
+    { sku: 'VT-OF-3020', desc: 'Filter housing assy. DN100', lp: 580, np: 420, cogs: 285, qty: 48 },
+    { sku: 'VT-OF-3021', desc: 'Bypass valve cartridge', lp: 320, np: 245, cogs: 162, qty: 32 },
+  ],
+}
+
+function generateGenericSkus(family: string, lp: number, np: number, cogs: number, qty: number) {
+  const prefix = family.replace(/[^A-Z]/gi, '').slice(0, 2).toUpperCase()
+  return [
+    { sku: `VT-${prefix}-001`, desc: `${family} — variant A`, lp, np, cogs, qty: Math.round(qty * 0.4) },
+    { sku: `VT-${prefix}-002`, desc: `${family} — variant B`, lp: Math.round(lp * 1.15), np: Math.round(np * 1.1), cogs: Math.round(cogs * 1.05), qty: Math.round(qty * 0.35) },
+    { sku: `VT-${prefix}-003`, desc: `${family} — variant C`, lp: Math.round(lp * 0.85), np: Math.round(np * 0.9), cogs: Math.round(cogs * 0.95), qty: Math.round(qty * 0.25) },
+  ]
+}
+
+export function getSkuData(familyName: string, f: Filters): SkuData[] {
+  const familyParts = getCrossRefParts(f)
+  const family = familyParts.find(p => p.partFamily === familyName)
+  if (!family) return []
+
+  const rawSkus = skusByFamily[familyName] || generateGenericSkus(familyName, family.listPrice, family.avgNetPrice, family.cogs, family.quantityCY)
+  const dates = ['2026-09-12', '2026-09-08', '2026-08-28', '2026-08-15', '2026-07-22']
+
+  return rawSkus.map((sku, i) => {
+    const sp = Math.round(vary(sku.lp * 0.88, f, 2500 + i))
+    const np = Math.round(vary(sku.np, f, 2520 + i))
+    const cogsV = Math.round(vary(sku.cogs, f, 2540 + i))
+    const qCy = Math.round(vary(sku.qty, f, 2560 + i))
+    const qPy = Math.round(vary(sku.qty * 0.9, f, 2580 + i))
+    const real = Math.round(np / sp * 1000) / 10
+    const mgn = Math.round((np - cogsV) / np * 1000) / 10
+    const txn = Math.max(1, Math.round(vary(qCy * 0.3, f, 2600 + i)))
+    const priceIdx = vary(1, f, 2620 + i)
+
+    return {
+      sku: sku.sku,
+      description: sku.desc,
+      listPrice: Math.round(vary(sku.lp, f, 2640 + i)),
+      segmentPrice: sp,
+      netPrice: np,
+      cogs: cogsV,
+      marginPct: mgn,
+      realizationPct: real,
+      qtyCY: qCy,
+      qtyPY: qPy,
+      revenueCY: Math.round(np * qCy / 1000),
+      lastTransactionDate: dates[i % dates.length],
+      transactionCount: txn,
+      isLowN: txn < LOW_N_THRESHOLD,
+      priceChange: priceIdx > 1.05 ? 'up' : priceIdx < 0.95 ? 'down' : 'flat',
+    }
+  })
+}

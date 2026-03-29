@@ -155,8 +155,8 @@ export default function Overview() {
             </thead>
             <tbody>
               {actionItems.map((item, idx) => (
-                <tr key={item.partFamily} className={`border-t border-border ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
-                  <td className="px-4 py-2.5 text-sm font-semibold text-text-primary">{item.partFamily}</td>
+                <tr key={item.partFamily} onClick={() => navigate('/cross-reference')} className={`border-t border-border cursor-pointer hover:bg-accent/5 ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
+                  <td className="px-4 py-2.5 text-sm font-semibold text-accent">{item.partFamily}</td>
                   <td className="px-2 py-2.5 text-center">
                     <span className="inline-block px-2 py-0.5 rounded bg-accent/15 text-accent text-xs font-bold">{item.category}</span>
                   </td>
