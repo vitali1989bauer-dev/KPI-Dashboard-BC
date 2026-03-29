@@ -7,6 +7,7 @@ import PriceRealization from './pages/TopKPIs'
 import PartsDeepDive from './pages/CustomerPortfolio'
 import RegionalBenchmark from './pages/MarketIntelligence'
 import CrossReference from './pages/CrossReference'
+import Reference from './pages/Reference'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
               <Route path="/parts-deep-dive" element={<PartsDeepDive />} />
               <Route path="/regional-benchmark" element={<RegionalBenchmark />} />
               <Route path="/cross-reference" element={<CrossReference />} />
+              <Route path="/reference" element={<Reference />} />
             </Routes>
           </main>
         </div>

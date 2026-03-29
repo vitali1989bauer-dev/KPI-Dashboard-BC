@@ -8,6 +8,7 @@ const tabs = [
   { path: '/parts-deep-dive', label: 'Parts Deep Dive', icon: '◉' },
   { path: '/regional-benchmark', label: 'Regional Benchmark', icon: '⊕' },
   { path: '/cross-reference', label: 'Cross-Reference', icon: '⊞' },
+  { path: '/reference', label: 'Reference', icon: '≡' },
 ]
 
 export default function FilterBar() {
