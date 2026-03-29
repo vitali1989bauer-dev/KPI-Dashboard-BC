@@ -153,7 +153,7 @@ export default function RegionalBenchmark() {
               </thead>
               <tbody>
                 {countries.map((c, idx) => (
-                  <tr key={c.code} className={`border-t border-border ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
+                  <tr key={c.code} className={`border-t border-border cursor-pointer hover:bg-accent/5 ${idx % 2 === 0 ? '' : 'bg-bg/50'}`}>
                     <td className="px-4 py-2.5 text-sm">
                       <span className={`font-semibold ${c.isYou ? 'text-accent' : 'text-text-primary'}`}>
                         {c.code} {c.name} {c.isYou ? '(You)' : ''}
@@ -217,7 +217,7 @@ export default function RegionalBenchmark() {
                 const isLow = row.transactionCount < LOW_N_THRESHOLD
                 const isSuppressed = row.transactionCount < 5
                 return (
-                  <tr key={row.subSegment} className={`border-t border-border ${idx % 2 === 0 ? '' : 'bg-bg/50'} ${isLow ? 'opacity-50' : ''}`}>
+                  <tr key={row.subSegment} className={`border-t border-border cursor-pointer hover:bg-accent/5 ${idx % 2 === 0 ? '' : 'bg-bg/50'} ${isLow ? 'opacity-50' : ''}`}>
                     <td className="px-5 py-3 text-sm font-semibold text-text-primary">{row.subSegment}</td>
                     <td className="px-4 py-3 text-sm text-right font-mono font-semibold text-text-primary">
                       {isSuppressed ? '—' : `${row.realizationPct.toFixed(1)}%`}

@@ -187,7 +187,7 @@ export default function CrossReference() {
                   </thead>
                   <tbody>
                     {skus.map((sku, idx) => (
-                      <tr key={sku.sku} className={`border-t border-border ${idx % 2 ? 'bg-bg/30' : ''} ${sku.isLowN ? 'opacity-50' : ''}`}>
+                      <tr key={sku.sku} className={`border-t border-border cursor-pointer hover:bg-accent/5 ${idx % 2 ? 'bg-bg/30' : ''} ${sku.isLowN ? 'opacity-50' : ''}`}>
                         <td className="px-3 py-2 text-[12px] font-mono font-semibold text-accent">{sku.sku}</td>
                         <td className="px-3 py-2 text-[12px] text-text-secondary max-w-[200px] truncate">{sku.description}</td>
                         <td className="px-3 py-2 text-[12px] text-right font-mono text-text-muted">£{sku.listPrice}</td>

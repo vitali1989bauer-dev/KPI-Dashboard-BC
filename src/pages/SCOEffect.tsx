@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   BarChart,
   Bar,
@@ -54,6 +55,7 @@ function buildWf(steps: { name: string; value: number; type: string }[]): WfPoin
 
 export default function ExecutiveSummary() {
   const { filters } = useFilters()
+  const navigate = useNavigate()
   const kpis = useMemo(() => getExecSummaryKpis(filters), [filters])
   const waterfallSteps = useMemo(() => getPriceWaterfall(filters), [filters])
   const wfData = useMemo(() => buildWf(waterfallSteps), [waterfallSteps])
@@ -157,7 +159,7 @@ export default function ExecutiveSummary() {
               {volumeByCat.map((row, idx) => {
                 const erosion = row.deltaPct > 2 && row.revDeltaPct < row.deltaPct * 0.5
                 return (
-                  <tr key={row.category} className={`border-t border-border ${idx % 2 ? 'bg-bg/30' : ''}`}>
+                  <tr key={row.category} onClick={() => navigate('/cross-reference')} className={`border-t border-border cursor-pointer hover:bg-accent/5 ${idx % 2 ? 'bg-bg/30' : ''}`}>
                     <td className="px-3 py-2 text-[13px] font-semibold">{row.category}</td>
                     <td className="px-2 py-2 text-[13px] text-right font-mono">{row.currentQty.toLocaleString()}</td>
                     <td className="px-2 py-2 text-[13px] text-right font-mono text-text-muted">{row.priorYearQty.toLocaleString()}</td>

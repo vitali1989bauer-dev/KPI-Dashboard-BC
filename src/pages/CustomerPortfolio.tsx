@@ -177,8 +177,8 @@ export default function PartsDeepDive() {
               {discountData.map((row, idx) => {
                 const isLow = row.transactionCount < LOW_N_THRESHOLD
                 return (
-                  <tr key={row.partFamily} className={`border-t border-border ${idx % 2 === 0 ? '' : 'bg-bg/50'} ${isLow ? 'opacity-50' : ''}`}>
-                    <td className="px-5 py-2.5 text-sm font-semibold text-text-primary">{row.partFamily}</td>
+                  <tr key={row.partFamily} onClick={() => navigate('/cross-reference')} className={`border-t border-border cursor-pointer hover:bg-accent/5 ${idx % 2 === 0 ? '' : 'bg-bg/50'} ${isLow ? 'opacity-50' : ''}`}>
+                    <td className="px-5 py-2.5 text-sm font-semibold text-accent">{row.partFamily}</td>
                     <td className="px-3 py-2.5 text-center">
                       <span className="px-2 py-0.5 rounded bg-accent/15 text-accent text-xs font-bold">{row.category}</span>
                     </td>
@@ -245,8 +245,8 @@ export default function PartsDeepDive() {
             <p className="text-xs font-bold text-negative mb-2">Quick Wins — {priorityData.filter(p => p.quadrant === 'quick-win').length} part families with high gap + high revenue</p>
             <div className="grid grid-cols-2 gap-x-6 gap-y-1">
               {priorityData.filter(p => p.quadrant === 'quick-win').map(item => (
-                <div key={item.partFamily} className="flex items-center justify-between text-xs py-1 border-b border-border/50">
-                  <span className="font-semibold text-text-primary">{item.partFamily} <span className="text-accent font-bold">({item.category})</span></span>
+                <div key={item.partFamily} onClick={() => navigate('/cross-reference')} className="flex items-center justify-between text-xs py-1 border-b border-border/50 cursor-pointer hover:bg-accent/5 rounded px-1">
+                  <span className="font-semibold text-accent">{item.partFamily} <span className="text-text-muted font-bold">({item.category})</span></span>
                   <span className="font-mono text-negative">-{item.realizationGapPp}pp · £{item.revenueAtRisk}k</span>
                 </div>
               ))}
