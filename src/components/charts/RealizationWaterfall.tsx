@@ -55,7 +55,6 @@ export default function RealizationWaterfall() {
           tick={CHART_AXIS}
           tickLine={false}
           axisLine={{ stroke: CHART_GRID }}
-          label={{ value: 'Index (intended gross = 100)', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#6b7280' }}
         />
         <Tooltip
           cursor={{ fill: 'rgba(255,50,70,0.06)' }}

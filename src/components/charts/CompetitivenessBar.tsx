@@ -19,7 +19,6 @@ export default function CompetitivenessBar() {
           tick={CHART_AXIS}
           tickLine={false}
           axisLine={{ stroke: CHART_GRID }}
-          label={{ value: 'Index (benchmark = 100)', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#6b7280' }}
         />
         <ReferenceArea y1={95} y2={105} fill="#1a8754" fillOpacity={0.07} ifOverflow="extendDomain"
           label={{ value: '±5% band', position: 'insideTopRight', fill: '#1a8754', fontSize: 10 }} />

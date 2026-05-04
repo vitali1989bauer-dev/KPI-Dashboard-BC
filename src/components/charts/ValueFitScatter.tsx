@@ -33,7 +33,6 @@ export default function ValueFitScatter() {
           tick={CHART_AXIS}
           tickLine={false}
           axisLine={{ stroke: CHART_GRID }}
-          label={{ value: 'Net price (index)', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#6b7280' }}
         />
         <ZAxis type="number" dataKey="revenue" range={[40, 260]} name="Revenue (€M)" />
         <ReferenceLine
