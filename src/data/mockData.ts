@@ -392,3 +392,64 @@ export const cycleTimeBins = [
   { bin: '10+', count: 4  },
 ];
 export const cycleTimeStats = { median: 4.8, p90: 8.6 };
+
+// ────────────────────────────────────────────────────────────────────
+// Per-tile mini-viz config (used by KpiTile to vary the visual treatment)
+// ────────────────────────────────────────────────────────────────────
+
+export type TileViz =
+  | { kind: 'ring'; value: number; max: number; target: number; centerLabel: string }
+  | { kind: 'barToTarget'; value: number; target: number; min: number; max: number; bandLow?: number; bandHigh?: number }
+  | { kind: 'distribution'; bars: { label: string; value: number }[]; highlightIndex?: number; baseline?: number }
+  | { kind: 'scatterMini'; points: { x: number; y: number }[]; regression: { slope: number; intercept: number; xMin: number; xMax: number } };
+
+export const tileVizFor: Record<KpiId, TileViz> = {
+  // Ring tiles — bounded scores / percent, ring fills to value
+  'value-fit':       { kind: 'ring', value: 72,   max: 100, target: 75, centerLabel: '/100' },
+  'coverage':        { kind: 'ring', value: 82,   max: 100, target: 80, centerLabel: '%' },
+  'realization':     { kind: 'ring', value: 87.3, max: 100, target: 88, centerLabel: '%' },
+  'conformity':      { kind: 'ring', value: 78,   max: 100, target: 85, centerLabel: '%' },
+  'adoption':        { kind: 'ring', value: 71,   max: 100, target: 80, centerLabel: '/100' },
+
+  // Bar-to-target tiles — comparison to benchmark / band
+  'competitiveness': { kind: 'barToTarget', value: 102, target: 100, min: 85, max: 115, bandLow: 95, bandHigh: 105 },
+  'increase-capture':{ kind: 'barToTarget', value: 68,  target: 75,  min: 0,  max: 100 },
+
+  // Distribution tiles — shape matters
+  'cycle-time': {
+    kind: 'distribution',
+    bars: cycleTimeBins.map((b) => ({ label: b.bin, value: b.count })),
+    highlightIndex: 4, // 4–5 bin contains the 4.8 median
+  },
+  'dispersion': {
+    kind: 'distribution',
+    bars: dispersionData.map((d) => ({ label: d.country.slice(0, 3), value: d.netPrice })),
+    baseline: 100,
+  },
+  'override': {
+    kind: 'distribution',
+    bars: overrideData.slice(0, 5).map((o) => ({ label: o.reason.split(' ')[0], value: o.count })),
+    highlightIndex: 0,
+  },
+
+  // Mini-scatter — R² with trend line
+  'alignment': (() => {
+    // Subsample to ~14 points for legibility at small size
+    const step = Math.max(1, Math.floor(alignmentData.length / 14));
+    const pts = alignmentData.filter((_, i) => i % step === 0).map((p) => ({ x: p.perf, y: p.netPrice }));
+    // Pre-computed least-squares fit on the full set
+    const xs = alignmentData.map((p) => p.perf);
+    const ys = alignmentData.map((p) => p.netPrice);
+    const n = xs.length;
+    const mx = xs.reduce((a, b) => a + b, 0) / n;
+    const my = ys.reduce((a, b) => a + b, 0) / n;
+    let num = 0, den = 0;
+    for (let i = 0; i < n; i++) {
+      num += (xs[i] - mx) * (ys[i] - my);
+      den += (xs[i] - mx) ** 2;
+    }
+    const slope = num / den;
+    const intercept = my - slope * mx;
+    return { kind: 'scatterMini' as const, points: pts, regression: { slope, intercept, xMin: Math.min(...xs), xMax: Math.max(...xs) } };
+  })(),
+};
