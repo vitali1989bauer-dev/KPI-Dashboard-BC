@@ -3,7 +3,10 @@ import {
   Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { realizationWaterfall } from '../../data/mockData';
-import { NEUTRAL, NEGATIVE, POSITIVE, CHART_AXIS, CHART_GRID } from './chartTheme';
+import {
+  NEUTRAL, NEGATIVE, POSITIVE, CHART_AXIS, CHART_GRID,
+  chartTooltipStyle, chartTooltipItemStyle, chartTooltipLabelStyle,
+} from './chartTheme';
 
 type Row = {
   name: string;
@@ -62,9 +65,9 @@ export default function RealizationWaterfall() {
             const r = ctx.payload as Row;
             return [r.label, r.name];
           }}
-          contentStyle={{ background: '#0f172a', border: 'none', borderRadius: 6, fontSize: 12, color: '#fff' }}
-          itemStyle={{ color: '#fff' }}
-          labelStyle={{ color: '#cbd5e1', fontSize: 11 }}
+          contentStyle={chartTooltipStyle}
+          itemStyle={chartTooltipItemStyle}
+          labelStyle={chartTooltipLabelStyle}
         />
         <Bar dataKey="base" stackId="w" fill="transparent" />
         <Bar dataKey="value" stackId="w" radius={[3, 3, 0, 0]}>

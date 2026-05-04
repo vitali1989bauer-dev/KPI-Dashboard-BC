@@ -20,8 +20,8 @@ export default function CompetitivenessBar() {
           tickLine={false}
           axisLine={{ stroke: CHART_GRID }}
         />
-        <ReferenceArea y1={95} y2={105} fill="#1a8754" fillOpacity={0.07} ifOverflow="extendDomain"
-          label={{ value: '±5% band', position: 'insideTopRight', fill: '#1a8754', fontSize: 10 }} />
+        <ReferenceArea y1={95} y2={105} fill="#94a3b8" fillOpacity={0.10} ifOverflow="extendDomain"
+          label={{ value: '±5% band', position: 'insideTopRight', fill: '#64748b', fontSize: 10 }} />
         <Tooltip cursor={{ fill: 'rgba(255,50,70,0.06)' }}
           contentStyle={chartTooltipStyle} itemStyle={chartTooltipItemStyle} labelStyle={chartTooltipLabelStyle} />
         <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />

@@ -16,11 +16,14 @@ export const POSITIVE = '#1a8754';
 export const NEGATIVE = '#c43e3e';
 export const AMBER = '#d49a1a';
 
+// Palette-compliant: red accent + neutral greys (no off-palette navies / slates).
+// The two segments under the spotlight (Enterprise, Long tail) get the accent
+// and a darker neutral; mid-market and channel sit back in lighter neutrals.
 export const SEGMENT_COLORS: Record<string, string> = {
   Enterprise: '#FF3246',
-  'Mid-market': '#1a3468',
-  Channel: '#d49a1a',
-  'Long tail': '#667885',
+  'Mid-market': '#94a3b8',
+  Channel: '#cbd5e1',
+  'Long tail': '#525252',
 };
 
 export const chartTooltipStyle = {

@@ -3,7 +3,10 @@ import {
   Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { alignmentData } from '../../data/mockData';
-import { ACCENT, CHART_AXIS, CHART_GRID } from './chartTheme';
+import {
+  ACCENT, CHART_AXIS, CHART_GRID,
+  chartTooltipStyle, chartTooltipItemStyle, chartTooltipLabelStyle,
+} from './chartTheme';
 
 // Compute regression line + R²
 function regression(pts: { perf: number; netPrice: number }[]) {
@@ -53,9 +56,9 @@ export default function AlignmentScatter() {
           />
           <Tooltip
             cursor={{ stroke: ACCENT, strokeWidth: 1, strokeDasharray: '3 3' }}
-            contentStyle={{ background: '#0f172a', border: 'none', borderRadius: 6, fontSize: 12, color: '#fff' }}
-            itemStyle={{ color: '#fff' }}
-            labelStyle={{ color: '#cbd5e1', fontSize: 11 }}
+            contentStyle={chartTooltipStyle}
+            itemStyle={chartTooltipItemStyle}
+            labelStyle={chartTooltipLabelStyle}
           />
           <Scatter data={alignmentData} fill={ACCENT} fillOpacity={0.7} />
           <Line

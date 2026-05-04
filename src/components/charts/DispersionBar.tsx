@@ -25,10 +25,10 @@ export default function DispersionBar() {
           label={{ value: 'Net price index (mean = 100)', position: 'insideBottom', offset: -2, fontSize: 11, fill: '#6b7280' }}
         />
         <YAxis type="category" dataKey="country" tick={CHART_AXIS} tickLine={false} axisLine={{ stroke: CHART_GRID }} width={70} />
-        <ReferenceArea x1={mean - 10} x2={mean + 10} fill="#94a3b8" fillOpacity={0.08}
+        <ReferenceArea x1={mean - 10} x2={mean + 10} fill="#94a3b8" fillOpacity={0.10}
           label={{ value: '±10% band', position: 'insideTopRight', fill: '#64748b', fontSize: 10 }} />
-        <ReferenceLine x={mean} stroke="#475569" strokeDasharray="3 3"
-          label={{ value: 'mean', position: 'top', fill: '#475569', fontSize: 10 }} />
+        <ReferenceLine x={mean} stroke="#94a3b8" strokeDasharray="3 3"
+          label={{ value: 'mean', position: 'top', fill: '#64748b', fontSize: 10 }} />
         <Tooltip cursor={{ fill: 'rgba(255,50,70,0.06)' }}
           contentStyle={chartTooltipStyle} itemStyle={chartTooltipItemStyle} labelStyle={chartTooltipLabelStyle} />
         <Bar dataKey="netPrice" name="Net price index" radius={[0, 3, 3, 0]} barSize={20}>

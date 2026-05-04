@@ -125,7 +125,7 @@ export const KPIS: Kpi[] = [
     catches: 'Top customers quietly subsidize loud ones.',
     unit: 'r2',
     hero: 'R² 0.41',
-    trendDelta: '−0.04',
+    trendDelta: '−0.04 R²',
     trendDirection: 'down',
     trendIsGood: false,
     status: 'amber',

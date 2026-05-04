@@ -1,6 +1,9 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { coverageData } from '../../data/mockData';
-import { ACCENT, NEUTRAL_SOFT } from './chartTheme';
+import {
+  ACCENT, NEUTRAL_SOFT,
+  chartTooltipStyle, chartTooltipItemStyle, chartTooltipLabelStyle,
+} from './chartTheme';
 
 export default function CoverageDonut() {
   const center = coverageData.find((d) => d.name === 'Under governance')?.value ?? 0;
@@ -10,9 +13,9 @@ export default function CoverageDonut() {
       <ResponsiveContainer width="100%" height={320}>
         <PieChart>
           <Tooltip
-            contentStyle={{ background: '#0f172a', border: 'none', borderRadius: 6, fontSize: 12, color: '#fff' }}
-            itemStyle={{ color: '#fff' }}
-            labelStyle={{ color: '#cbd5e1', fontSize: 11 }}
+            contentStyle={chartTooltipStyle}
+            itemStyle={chartTooltipItemStyle}
+            labelStyle={chartTooltipLabelStyle}
             formatter={(v, n) => [`${v}%`, String(n)]}
           />
           <Pie

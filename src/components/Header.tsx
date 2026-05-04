@@ -41,7 +41,7 @@ export default function Header({ period, setPeriod }: Props) {
               Pricing Quality Dashboard
             </h1>
           </div>
-          <p className="mt-1.5 ml-4 text-sm text-neutral-500">
+          <p className="mt-1.5 pl-[18px] text-sm text-neutral-500">
             Three dimensions, eleven KPIs
           </p>
         </div>

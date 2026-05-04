@@ -26,7 +26,7 @@ export default function DimensionBanner({ dimension, index, total, name, questio
       <div className="flex items-baseline gap-4 min-w-0">
         <div className="flex items-center gap-3 shrink-0">
           <div className="h-5 w-1 bg-[#FF3246]" aria-hidden />
-          <span className="text-[10px] uppercase tracking-[0.22em] font-mono text-neutral-400 tabular-nums">
+          <span className="text-[10px] uppercase tracking-[0.22em] text-neutral-400 tabular-nums font-medium">
             {indexLabel}
           </span>
         </div>
