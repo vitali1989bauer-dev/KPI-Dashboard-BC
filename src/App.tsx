@@ -1,43 +1,35 @@
-import { Routes, Route } from 'react-router-dom'
-import { FilterProvider } from './FilterContext'
-import Sidebar from './components/Sidebar'
-import FilterBar from './components/FilterBar'
-import TopKPIs from './pages/TopKPIs'
-import SCOEffect from './pages/SCOEffect'
-import MarketIntelligence from './pages/MarketIntelligence'
-import CustomerPortfolio from './pages/CustomerPortfolio'
-import PricingConditions from './pages/PricingConditions'
-import Operations from './pages/Operations'
-import PricingDeepDive from './pages/PricingDeepDive'
-import CostDeepDive from './pages/CostDeepDive'
-import DataConnections from './pages/DataConnections'
-import PriceEngine from './pages/PriceEngine'
-import KpiFormulas from './pages/KpiFormulas'
+import { useState } from 'react';
+import Header from './components/Header';
+import DimensionSection from './components/DimensionSection';
+import InsightsPanel from './components/InsightsPanel';
+import { DIMENSIONS, QUARTERS, type KpiId } from './data/mockData';
 
 export default function App() {
+  const [period, setPeriod] = useState<string>(QUARTERS[QUARTERS.length - 1]);
+  const [expanded, setExpanded] = useState<KpiId | null>(null);
+
+  const toggle = (id: KpiId) => setExpanded((cur) => (cur === id ? null : id));
+
   return (
-    <FilterProvider>
-      <div className="min-h-screen">
-        <Sidebar />
-        <div className="ml-64">
-          <FilterBar />
-          <main className="p-6">
-            <Routes>
-              <Route path="/" element={<TopKPIs />} />
-              <Route path="/sco-effect" element={<SCOEffect />} />
-              <Route path="/market-intelligence" element={<MarketIntelligence />} />
-              <Route path="/customer-portfolio" element={<CustomerPortfolio />} />
-              <Route path="/pricing-conditions" element={<PricingConditions />} />
-              <Route path="/operations" element={<Operations />} />
-              <Route path="/pricing-deep-dive" element={<PricingDeepDive />} />
-              <Route path="/cost-deep-dive" element={<CostDeepDive />} />
-              <Route path="/price-engine" element={<PriceEngine />} />
-              <Route path="/kpi-formulas" element={<KpiFormulas />} />
-              <Route path="/data-connections" element={<DataConnections />} />
-            </Routes>
-          </main>
-        </div>
-      </div>
-    </FilterProvider>
-  )
+    <div className="min-h-screen bg-neutral-50">
+      <Header period={period} setPeriod={setPeriod} />
+      <main className="mx-auto max-w-[1400px] px-8 pb-10">
+        {DIMENSIONS.map((d) => (
+          <DimensionSection
+            key={d.id}
+            id={d.id}
+            name={d.name}
+            question={d.question}
+            expanded={expanded}
+            onToggle={toggle}
+          />
+        ))}
+        <InsightsPanel />
+        <footer className="border-t border-neutral-200 pt-6 pb-2 text-[11px] text-neutral-400 flex items-center justify-between">
+          <div>Pricing Quality Dashboard · demonstration data</div>
+          <div className="tabular-nums">Showing {period}</div>
+        </footer>
+      </main>
+    </div>
+  );
 }

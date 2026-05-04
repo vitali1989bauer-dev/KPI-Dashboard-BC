@@ -1,73 +1,63 @@
-# React + TypeScript + Vite
+# Pricing Quality Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive single-page dashboard demonstrating an **11-KPI pricing-quality
+framework** organised into three dimensions — Market Signals, Price Performance,
+and Price Operations. Built as the closing visual for a 75-minute pricing
+summit breakout: the facilitator screen-shares the dashboard, walks through
+each dimension, and clicks into individual KPIs to show realistic data. All
+numbers are mocked and generated client-side; there is no backend.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React 19 + TypeScript + Vite (single-page app, deploys to Railway)
+- Tailwind CSS v4
+- Recharts for all visualisations
+- Inter font, Accenture-red accent (`#FF3246`) on a near-white canvas
 
-## React Compiler
+> The original brief asked for Next.js 14, but the existing Railway deploy
+> infrastructure was already configured for Vite and the brief explicitly says
+> no routing or backend is needed — same UX, faster build.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Local development
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev          # http://localhost:5173
+npm run build        # tsc -b && vite build
+npm run preview      # serve the production build locally
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Node 20+.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Live dashboard
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Deploys from `claude/pricing-kpi-dashboard-2ab0q` to Railway with the standard
+Vite build (`npm run build` → `npx serve dist`).
+
+> **https://&lt;your-railway-app&gt;.up.railway.app** *(update after first deploy)*
+
+## What's inside
+
+- Three dimension sections, each with 3–4 KPI tiles. Tiles show a hero metric,
+  trend vs. last quarter, status dot, and 8-quarter sparkline.
+- Click any tile to expand inline (no modal) — formula, "what good looks like",
+  and a tailored chart per KPI: scatter, waterfall, donut, stacked bar,
+  histogram, etc.
+- Closing panel: "What this dashboard catches that revenue & margin don't" —
+  one insight per dimension.
+
+## File layout
+
+```
+src/
+  App.tsx                     # composition
+  data/mockData.ts            # all KPI definitions + per-chart datasets
+  components/
+    Header.tsx                # title + company / period selectors
+    DimensionSection.tsx      # section header + tile grid + expanded view
+    KpiTile.tsx               # hero tile with sparkline + status dot
+    KpiExpanded.tsx           # inline detail view + chart picker
+    InsightsPanel.tsx         # closing dark panel
+    Sparkline.tsx             # tiny sparkline used in tiles
+    charts/                   # eleven Recharts visualisations, one per KPI
 ```
