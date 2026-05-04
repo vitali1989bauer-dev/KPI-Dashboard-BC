@@ -8,20 +8,28 @@ type Props = {
 
 // Non-functional filter options — present for the demo, do not affect data.
 const ALL = 'All';
+const REGIONS = [ALL, 'EMEA', 'Americas', 'APAC'];
+const COUNTRIES = [ALL, 'Germany', 'France', 'Italy', 'Spain', 'Poland', 'UK', 'Netherlands', 'Belgium'];
 const DIVISIONS = [ALL, 'Industrial Components', 'Process Chemicals', 'Specialty Coatings', 'Aftermarket'];
 const SEGMENTS = [ALL, 'Enterprise', 'Mid-market', 'Channel', 'Long tail'];
+const CUSTOMER_TIERS = [ALL, 'Strategic', 'Key', 'Standard', 'Tail'];
 const PRODUCT_GROUPS = [ALL, 'Bearings', 'Seals', 'Lubricants', 'Coatings', 'Aftermarket Kits'];
 const APPLICATIONS = [ALL, 'Automotive', 'Industrial', 'Marine', 'Agriculture', 'Construction'];
 const BRANDS = [ALL, 'Premium Line', 'Core Line', 'Value Line'];
 const SALES_CHANNELS = [ALL, 'Direct', 'Distributor', 'OEM', 'E-commerce'];
+const FISCAL_YEARS = [ALL, 'FY 2025', 'FY 2024', 'FY 2023'];
 
 export default function Header({ period, setPeriod }: Props) {
+  const [region, setRegion] = useState(ALL);
+  const [country, setCountry] = useState(ALL);
   const [division, setDivision] = useState(ALL);
   const [segment, setSegment] = useState(ALL);
+  const [tier, setTier] = useState(ALL);
   const [group, setGroup] = useState(ALL);
   const [application, setApplication] = useState(ALL);
   const [brand, setBrand] = useState(ALL);
   const [channel, setChannel] = useState(ALL);
+  const [fiscalYear, setFiscalYear] = useState(ALL);
 
   return (
     <header className="border-b border-neutral-200 bg-white">
@@ -39,12 +47,16 @@ export default function Header({ period, setPeriod }: Props) {
         </div>
 
         <div className="flex flex-wrap items-end gap-x-3 gap-y-3">
+          <Selector label="Region" value={region} options={REGIONS} onChange={setRegion} />
+          <Selector label="Country" value={country} options={COUNTRIES} onChange={setCountry} />
           <Selector label="Division" value={division} options={DIVISIONS} onChange={setDivision} />
           <Selector label="Customer Segment" value={segment} options={SEGMENTS} onChange={setSegment} />
+          <Selector label="Customer Tier" value={tier} options={CUSTOMER_TIERS} onChange={setTier} />
           <Selector label="Product Group" value={group} options={PRODUCT_GROUPS} onChange={setGroup} />
           <Selector label="Application" value={application} options={APPLICATIONS} onChange={setApplication} />
           <Selector label="Brand" value={brand} options={BRANDS} onChange={setBrand} />
           <Selector label="Sales Channel" value={channel} options={SALES_CHANNELS} onChange={setChannel} />
+          <Selector label="Fiscal Year" value={fiscalYear} options={FISCAL_YEARS} onChange={setFiscalYear} />
           <Selector
             label="Period"
             value={period}
