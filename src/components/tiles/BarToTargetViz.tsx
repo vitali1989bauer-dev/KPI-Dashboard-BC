@@ -19,13 +19,12 @@ export default function BarToTargetViz({
   bandHigh,
   statusColor,
   width = 220,
-  height = 56,
+  height = 40,
 }: Props) {
-  // Render with viewBox so the SVG scales to its container; width prop is intrinsic only.
-  const padX = 8;
+  const padX = 4;
   const innerW = width - padX * 2;
-  const trackY = height / 2 + 4;
-  const trackH = 8;
+  const trackY = height - 16;
+  const trackH = 6;
   const toX = (v: number) => padX + ((v - min) / (max - min)) * innerW;
 
   const valX = toX(value);
@@ -40,30 +39,16 @@ export default function BarToTargetViz({
       className="block"
       style={{ maxWidth: width }}
     >
-      {/* axis ticks: min, target, max labels */}
-      <text x={padX} y={trackY - 8} fontSize={9} fill="#9aa3af" fontFamily="ui-monospace, monospace">
-        {min}
-      </text>
-      <text
-        x={padX + innerW}
-        y={trackY - 8}
-        fontSize={9}
-        fill="#9aa3af"
-        textAnchor="end"
-        fontFamily="ui-monospace, monospace"
-      >
-        {max}
-      </text>
-
-      {/* target band */}
+      {/* target band — subtle, no labels */}
       {bandLow !== undefined && bandHigh !== undefined && (
         <rect
           x={toX(bandLow)}
           y={trackY - 2}
           width={toX(bandHigh) - toX(bandLow)}
           height={trackH + 4}
-          fill="#FF3246"
-          fillOpacity={0.07}
+          rx={2}
+          fill="#9aa3af"
+          fillOpacity={0.12}
         />
       )}
 
@@ -80,21 +65,25 @@ export default function BarToTargetViz({
         fill={statusColor}
       />
 
-      {/* target tick */}
+      {/* target tick — short, no label text */}
       <line
         x1={tgtX}
         x2={tgtX}
-        y1={trackY - 4}
-        y2={trackY + trackH + 4}
+        y1={trackY - 5}
+        y2={trackY + trackH + 5}
         stroke="#374151"
         strokeWidth={1.5}
       />
-      <text x={tgtX} y={trackY + trackH + 14} fontSize={9} fill="#6b7280" textAnchor="middle">
-        target {target}
-      </text>
 
       {/* value marker */}
-      <circle cx={valX} cy={trackY + trackH / 2} r={4.5} fill="#ffffff" stroke={statusColor} strokeWidth={2} />
+      <circle
+        cx={valX}
+        cy={trackY + trackH / 2}
+        r={4.5}
+        fill="#ffffff"
+        stroke={statusColor}
+        strokeWidth={2}
+      />
     </svg>
   );
 }

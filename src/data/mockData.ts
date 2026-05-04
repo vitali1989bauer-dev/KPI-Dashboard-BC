@@ -404,11 +404,12 @@ export type TileViz =
   | { kind: 'scatterMini'; points: { x: number; y: number }[]; regression: { slope: number; intercept: number; xMin: number; xMax: number } };
 
 export const tileVizFor: Record<KpiId, TileViz> = {
-  // Ring tiles — bounded scores / percent, ring fills to value
+  // Ring tiles — bounded scores / percent, ring fills to value.
+  // centerLabel is only set when the hero string has no unit (so we don't double-print "%").
   'value-fit':       { kind: 'ring', value: 72,   max: 100, target: 75, centerLabel: '/100' },
-  'coverage':        { kind: 'ring', value: 82,   max: 100, target: 80, centerLabel: '%' },
-  'realization':     { kind: 'ring', value: 87.3, max: 100, target: 88, centerLabel: '%' },
-  'conformity':      { kind: 'ring', value: 78,   max: 100, target: 85, centerLabel: '%' },
+  'coverage':        { kind: 'ring', value: 82,   max: 100, target: 80, centerLabel: '' },
+  'realization':     { kind: 'ring', value: 87.3, max: 100, target: 88, centerLabel: '' },
+  'conformity':      { kind: 'ring', value: 78,   max: 100, target: 85, centerLabel: '' },
   'adoption':        { kind: 'ring', value: 71,   max: 100, target: 80, centerLabel: '/100' },
 
   // Bar-to-target tiles — comparison to benchmark / band

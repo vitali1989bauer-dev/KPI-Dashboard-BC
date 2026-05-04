@@ -58,9 +58,11 @@ export default function RingViz({
         <div className="text-[20px] font-semibold tracking-tight text-neutral-900 leading-none tabular-nums">
           {hero}
         </div>
-        <div className="mt-0.5 text-[9px] uppercase tracking-wider text-neutral-400 font-medium">
-          {centerLabel}
-        </div>
+        {centerLabel && (
+          <div className="mt-0.5 text-[9px] uppercase tracking-wider text-neutral-400 font-medium">
+            {centerLabel}
+          </div>
+        )}
       </div>
     </div>
   );
