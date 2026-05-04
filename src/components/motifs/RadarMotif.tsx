@@ -8,11 +8,12 @@ export default function RadarMotif({
   width?: number;
   height?: number;
 }) {
-  const cx = width - height * 0.55;
+  const cx = width / 2;
   const cy = height * 0.55;
-  const r1 = height * 0.22;
-  const r2 = height * 0.36;
-  const r3 = height * 0.5;
+  const r = Math.min(width, height) * 0.42;
+  const r1 = r * 0.44;
+  const r2 = r * 0.72;
+  const r3 = r;
   const stroke = '#cbd0d8';
   const strokeFaint = '#e4e7ec';
 

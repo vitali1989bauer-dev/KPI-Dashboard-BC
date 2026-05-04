@@ -19,24 +19,26 @@ export default function DimensionSection({ id, name, question, index, total, exp
   const expandedKpi: Kpi | undefined = kpis.find((k) => k.id === expanded);
 
   return (
-    <section className="mt-12 first:mt-8">
-      <DimensionBanner dimension={id} index={index} total={total} name={name} question={question} />
+    <section className="mt-12 first:mt-8 border-t border-neutral-200 pt-8 first:border-t-0 first:pt-0">
+      <div className="grid gap-6 lg:gap-8 lg:grid-cols-[240px_1fr] items-start">
+        <DimensionBanner dimension={id} index={index} total={total} name={name} question={question} />
 
-      <div
-        className={`grid gap-4 ${
-          kpis.length === 4
-            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-            : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-        }`}
-      >
-        {kpis.map((k) => (
-          <KpiTile
-            key={k.id}
-            kpi={k}
-            expanded={expanded === k.id}
-            onClick={() => onToggle(k.id)}
-          />
-        ))}
+        <div
+          className={`grid gap-4 ${
+            kpis.length === 4
+              ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'
+              : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
+          }`}
+        >
+          {kpis.map((k) => (
+            <KpiTile
+              key={k.id}
+              kpi={k}
+              expanded={expanded === k.id}
+              onClick={() => onToggle(k.id)}
+            />
+          ))}
+        </div>
       </div>
 
       {expandedKpi && (

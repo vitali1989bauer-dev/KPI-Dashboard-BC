@@ -11,8 +11,8 @@ export default function FunnelMotif({
   const padX = 12;
   const padY = 10;
   const innerH = height - padY * 2;
-  const innerW = height * 1.6;
-  const x0 = width - innerW - padX;
+  const innerW = Math.min(width - padX * 2, height * 1.6);
+  const x0 = (width - innerW) / 2;
   const rows = [
     { wRatio: 1.0, fill: '#e4e7ec' },
     { wRatio: 0.86, fill: '#d4d8df' },

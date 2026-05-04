@@ -13,7 +13,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Header period={period} setPeriod={setPeriod} />
-      <main className="mx-auto max-w-[1400px] px-8 pb-10">
+      <main className="mx-auto max-w-[1600px] px-8 pb-10">
         {DIMENSIONS.map((d, i) => (
           <DimensionSection
             key={d.id}

@@ -33,7 +33,7 @@ export default function Header({ period, setPeriod }: Props) {
 
   return (
     <header className="border-b border-neutral-200 bg-white">
-      <div className="mx-auto max-w-[1400px] px-8 py-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="mx-auto max-w-[1600px] px-8 py-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="shrink-0">
           <div className="flex items-center gap-3">
             <div className="h-7 w-1.5 bg-[#FF3246]" aria-hidden />
