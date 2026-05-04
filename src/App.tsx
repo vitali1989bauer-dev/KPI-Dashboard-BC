@@ -14,12 +14,14 @@ export default function App() {
     <div className="min-h-screen bg-neutral-50">
       <Header period={period} setPeriod={setPeriod} />
       <main className="mx-auto max-w-[1400px] px-8 pb-10">
-        {DIMENSIONS.map((d) => (
+        {DIMENSIONS.map((d, i) => (
           <DimensionSection
             key={d.id}
             id={d.id}
             name={d.name}
             question={d.question}
+            index={i}
+            total={DIMENSIONS.length}
             expanded={expanded}
             onToggle={toggle}
           />
