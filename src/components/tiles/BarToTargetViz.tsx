@@ -21,6 +21,7 @@ export default function BarToTargetViz({
   width = 220,
   height = 56,
 }: Props) {
+  // Render with viewBox so the SVG scales to its container; width prop is intrinsic only.
   const padX = 8;
   const innerW = width - padX * 2;
   const trackY = height / 2 + 4;
@@ -31,7 +32,14 @@ export default function BarToTargetViz({
   const tgtX = toX(target);
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden className="block">
+    <svg
+      width="100%"
+      height="auto"
+      viewBox={`0 0 ${width} ${height}`}
+      aria-hidden
+      className="block"
+      style={{ maxWidth: width }}
+    >
       {/* axis ticks: min, target, max labels */}
       <text x={padX} y={trackY - 8} fontSize={9} fill="#9aa3af" fontFamily="ui-monospace, monospace">
         {min}
