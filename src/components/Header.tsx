@@ -1,4 +1,4 @@
-import { COMPANY, QUARTERS } from '../data/mockData';
+import { QUARTERS } from '../data/mockData';
 
 type Props = {
   period: string;
@@ -22,12 +22,6 @@ export default function Header({ period, setPeriod }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
-          <Selector
-            label="Company"
-            value={COMPANY.name}
-            options={[COMPANY.name, 'Helios Manufacturing AG', 'Northwind Materials Ltd.']}
-            onChange={() => {}}
-          />
           <Selector
             label="Period"
             value={period}

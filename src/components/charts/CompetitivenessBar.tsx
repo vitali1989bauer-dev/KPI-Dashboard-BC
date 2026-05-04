@@ -27,7 +27,7 @@ export default function CompetitivenessBar() {
           contentStyle={chartTooltipStyle} itemStyle={chartTooltipItemStyle} labelStyle={chartTooltipLabelStyle} />
         <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
         <Bar dataKey="benchmark" name="Benchmark" fill={NEUTRAL} radius={[3, 3, 0, 0]} barSize={28} />
-        <Bar dataKey="yours" name="Acme" fill={ACCENT} radius={[3, 3, 0, 0]} barSize={28} />
+        <Bar dataKey="yours" name="Net price" fill={ACCENT} radius={[3, 3, 0, 0]} barSize={28} />
       </BarChart>
     </ResponsiveContainer>
   );

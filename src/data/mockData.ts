@@ -1,13 +1,6 @@
 // Mock data for the Pricing Quality Dashboard.
 // Static, deterministic, and inline — no backend.
 
-export const COMPANY = {
-  name: 'Acme Industrial GmbH',
-  revenue: '€820M',
-  units: 4,
-  countries: 6,
-};
-
 export const QUARTERS = [
   'Q4 2023',
   'Q1 2024',
