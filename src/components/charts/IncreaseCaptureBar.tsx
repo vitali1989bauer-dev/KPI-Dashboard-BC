@@ -18,6 +18,7 @@ export default function IncreaseCaptureBar() {
           tick={CHART_AXIS}
           tickLine={false}
           axisLine={{ stroke: CHART_GRID }}
+          tickFormatter={(v) => `${v}%`}
         />
         <Tooltip
           cursor={{ fill: 'rgba(255,50,70,0.06)' }}

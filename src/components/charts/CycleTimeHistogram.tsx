@@ -37,7 +37,6 @@ export default function CycleTimeHistogram() {
           tick={CHART_AXIS}
           tickLine={false}
           axisLine={{ stroke: CHART_GRID }}
-          label={{ value: 'Quote-to-approval time (days)', position: 'insideBottom', offset: -5, fontSize: 11, fill: '#6b7280' }}
         />
         <YAxis
           tick={CHART_AXIS}

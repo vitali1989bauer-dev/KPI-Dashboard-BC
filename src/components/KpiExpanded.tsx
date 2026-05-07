@@ -1,4 +1,4 @@
-import type { Kpi } from '../data/mockData';
+import type { Kpi, KpiId } from '../data/mockData';
 import ValueFitScatter from './charts/ValueFitScatter';
 import CompetitivenessBar from './charts/CompetitivenessBar';
 import DispersionBar from './charts/DispersionBar';
@@ -10,6 +10,43 @@ import ConformityStackedBar from './charts/ConformityStackedBar';
 import OverrideBar from './charts/OverrideBar';
 import AdoptionSplit from './charts/AdoptionSplit';
 import CycleTimeHistogram from './charts/CycleTimeHistogram';
+
+type AxisInfo = { x?: string; y?: string; hint?: string };
+
+// Per-chart axis labels. Categorical axes are omitted (self-evident from
+// the tick labels). Adoption / Coverage have their own internal labelling.
+const axisInfo: Partial<Record<KpiId, AxisInfo>> = {
+  'value-fit':        { x: 'Perceived value (index 20–100)', y: 'Net price (index 20–100)', hint: 'bubble size = revenue (€M)' },
+  'competitiveness':  { y: 'Net price index (benchmark = 100)' },
+  'dispersion':       { x: 'Net price index (mean = 100)' },
+  'realization':      { y: 'Index (intended gross = 100)' },
+  'alignment':        { x: 'Customer performance score', y: 'Net price (index)', hint: 'dashed line = regression fit' },
+  'increase-capture': { y: 'Price change (%)' },
+  'conformity':       { x: 'Share of transactions (%)' },
+  'override':         { x: 'Override transactions (count)' },
+  'cycle-time':       { x: 'Quote-to-approval time (days)', y: 'Quote count' },
+};
+
+function AxisCaption({ info }: { info?: AxisInfo }) {
+  if (!info || (!info.x && !info.y && !info.hint)) return null;
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-neutral-500">
+      {info.y && (
+        <span>
+          <span className="mr-1.5 uppercase tracking-wider text-neutral-400">Y</span>
+          {info.y}
+        </span>
+      )}
+      {info.x && (
+        <span>
+          <span className="mr-1.5 uppercase tracking-wider text-neutral-400">X</span>
+          {info.x}
+        </span>
+      )}
+      {info.hint && <span className="text-neutral-400">· {info.hint}</span>}
+    </div>
+  );
+}
 
 function ChartFor({ kpi }: { kpi: Kpi }) {
   switch (kpi.id) {
@@ -48,6 +85,7 @@ export default function KpiExpanded({ kpi, onClose }: { kpi: Kpi; onClose: () =>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 pt-5">
         <div className="min-w-0">
+          <AxisCaption info={axisInfo[kpi.id]} />
           <ChartFor kpi={kpi} />
         </div>
         <aside className="space-y-4 text-[13px] leading-relaxed">
@@ -70,3 +108,4 @@ function Box({ label, body, accent = false }: { label: string; body: string; acc
     </div>
   );
 }
+

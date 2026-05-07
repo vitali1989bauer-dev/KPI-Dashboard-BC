@@ -44,7 +44,6 @@ export default function AlignmentScatter() {
             tick={CHART_AXIS}
             tickLine={false}
             axisLine={{ stroke: CHART_GRID }}
-            label={{ value: 'Customer performance score', position: 'insideBottom', offset: -15, fontSize: 11, fill: '#6b7280' }}
           />
           <YAxis
             type="number"
